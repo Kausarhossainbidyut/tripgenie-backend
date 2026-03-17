@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { uploadSingle, uploadMultiple, uploadFields } from '../middlewares/upload';
+import { uploadSingleImgBB, uploadMultipleImgBB } from '../middlewares/upload';
 import {
   uploadSingleFile,
   uploadMultipleFiles,
@@ -8,23 +8,13 @@ import {
 
 const router = Router();
 
-// Single file upload (e.g., profile picture)
-router.post('/profile', uploadSingle('profile'), uploadSingleFile);
+// Single file upload to imgBB (e.g., profile picture)
+router.post('/profile', uploadSingleImgBB('profile'), uploadSingleFile);
 
-// Multiple travel images upload
-router.post('/travel-images', uploadMultiple('images', 5), uploadMultipleFiles);
+// Multiple travel images upload to imgBB
+router.post('/travel-images', uploadMultipleImgBB('images', 5), uploadMultipleFiles);
 
-// Mixed fields upload (profile + documents)
-router.post(
-  '/mixed',
-  uploadFields([
-    { name: 'profile', maxCount: 1 },
-    { name: 'documents', maxCount: 5 }
-  ]),
-  uploadMultipleFiles
-);
-
-// Delete file
+// Delete file endpoint (imgBB delete via delete_url)
 router.delete('/delete', deleteUploadedFile);
 
 export default router;

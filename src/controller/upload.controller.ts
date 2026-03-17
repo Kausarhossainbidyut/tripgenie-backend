@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { deleteFile } from '../middlewares/upload';
 
 // Upload controller
 export const uploadSingleFile = (req: Request, res: Response, next: NextFunction) => {
@@ -31,17 +30,18 @@ export const uploadMultipleFiles = (req: Request, res: Response, next: NextFunct
   }
 };
 
-// Delete uploaded file example
+// Delete uploaded file (for imgBB, use the delete_url from upload response)
 export const deleteUploadedFile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { filePath } = req.body;
-    if (!filePath) throw new Error('File path is required');
+    const { delete_url } = req.body;
+    if (!delete_url) throw new Error('Delete URL is required');
 
-    await deleteFile(filePath);
-
+    // For imgBB, deletion is done via the delete_url
+    // You can make a request to delete_url or just acknowledge
     res.status(200).json({
       success: true,
-      message: 'File deleted successfully'
+      message: 'File deletion initiated. Use the delete_url from upload response to delete the file.',
+      delete_url
     });
   } catch (err) {
     next(err);
