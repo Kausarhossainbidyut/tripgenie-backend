@@ -3,18 +3,20 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 // import router from './routes';
+import uploadRoutes from './routers/upload.routes';
 
 const app: Application = express();
 
 // Middleware
 app.use(cors());            
-app.use(express.json());    
+app.use(express.json());
+app.use('/uploads', express.static('uploads')); // Serve uploaded files    
 
 
 // API Routes
 // ---------------------
 // app.use('/api/v1', router);
-
+app.use('/api/v1/upload', uploadRoutes);
 
 // Health Check / Root Route
 // ---------------------

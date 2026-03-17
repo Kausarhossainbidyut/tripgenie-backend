@@ -6,7 +6,7 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "eslint.validate": ["typescript", "javascript"],
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "terminal.integrated.env.windows": {
     "NODE_ENV": "development"
