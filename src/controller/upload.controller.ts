@@ -33,8 +33,9 @@ export const uploadMultipleFiles = (req: Request, res: Response, next: NextFunct
 // Delete uploaded file (for imgBB, use the delete_url from upload response)
 export const deleteUploadedFile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { delete_url } = req.body;
-    if (!delete_url) throw new Error('Delete URL is required');
+    // Support both query params and body
+    const delete_url = req.query.delete_url as string || req.body?.delete_url;
+    if (!delete_url) throw new Error('Delete URL is required. Pass as query param ?delete_url=... or in body');
 
     // For imgBB, deletion is done via the delete_url
     // You can make a request to delete_url or just acknowledge
