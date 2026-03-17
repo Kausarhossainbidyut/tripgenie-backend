@@ -11,9 +11,6 @@ const config = {
   jwt_expires_in: process.env.JWT_EXPIRES_IN || '7d',
   gemini_api_key: process.env.GEMINI_API_KEY || '',
   client_url: process.env.CLIENT_URL || 'http://localhost:3000',
-  cloudinary_cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
-  cloudinary_api_key: process.env.CLOUDINARY_API_KEY || '',
-  cloudinary_api_secret: process.env.CLOUDINARY_API_SECRET || '',
   imgbb_api_key: process.env.IMGBB_API_KEY || '',
 };
 
