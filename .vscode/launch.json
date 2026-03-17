@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Debug Backend (TS Node)",
+      "program": "${workspaceFolder}/src/server.ts",
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "cwd": "${workspaceFolder}",
+      "runtimeArgs": ["--nolazy"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ]
+}
