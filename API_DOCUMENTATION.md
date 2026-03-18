@@ -7,6 +7,7 @@ Complete API reference for TripGenie Backend.
 - [Authentication API](#authentication-api)
 - [Users API](#users-api)
 - [Items API](#items-api)
+- [Bookings API](#bookings-api)
 - [File Upload API](#file-upload-api)
 - [Frontend Integration Guide](#frontend-integration-guide)
 - [Error Codes](#error-codes)
@@ -517,6 +518,202 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 
 ---
 
+## Bookings API
+
+Booking management API for travel reservations.
+
+### 1. Create Booking
+
+Create a new booking for an item.
+
+**Endpoint:** `POST /api/bookings`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "itemId": "69ba8a415ea070bc51060b1d",
+  "quantity": 2
+}
+```
+
+**Required Fields:**
+- `itemId` (string) - ID of the item to book
+- `quantity` (number) - Number of bookings (min: 1)
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Booking created successfully",
+  "data": {
+    "_id": "69ba8a415ea070bc51060b2e",
+    "userId": "john@example.com",
+    "itemId": "69ba8a415ea070bc51060b1d",
+    "quantity": 2,
+    "totalPrice": 10000,
+    "status": "pending",
+    "createdAt": "2026-03-18T11:19:29.856Z",
+    "updatedAt": "2026-03-18T11:19:29.856Z"
+  }
+}
+```
+
+**Note:** `totalPrice` is automatically calculated from item price × quantity
+
+**Access:** Authenticated users only
+
+---
+
+### 2. Get All Bookings
+
+Retrieve list of bookings.
+
+**Endpoint:** `GET /api/bookings`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Bookings fetched successfully",
+  "data": [
+    {
+      "_id": "69ba8a415ea070bc51060b2e",
+      "userId": "john@example.com",
+      "itemId": "69ba8a415ea070bc51060b1d",
+      "quantity": 2,
+      "totalPrice": 10000,
+      "status": "pending",
+      "createdAt": "2026-03-18T11:19:29.856Z"
+    }
+  ]
+}
+```
+
+**Access:** 
+- Admin: Sees all bookings
+- User: Sees only their own bookings
+
+---
+
+### 3. Get Booking by ID
+
+Retrieve specific booking details.
+
+**Endpoint:** `GET /api/bookings/:id`
+
+**Example:** `GET /api/bookings/69ba8a415ea070bc51060b2e`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Booking fetched successfully",
+  "data": {
+    "_id": "69ba8a415ea070bc51060b2e",
+    "userId": "john@example.com",
+    "itemId": "69ba8a415ea070bc51060b1d",
+    "quantity": 2,
+    "totalPrice": 10000,
+    "status": "pending",
+    "createdAt": "2026-03-18T11:19:29.856Z",
+    "updatedAt": "2026-03-18T11:19:29.856Z"
+  }
+}
+```
+
+**Access:** 
+- Admin: Can view any booking
+- User: Can only view their own bookings
+
+---
+
+### 4. Update Booking Status
+
+Update booking status (Admin only).
+
+**Endpoint:** `PATCH /api/bookings/:id`
+
+**Example:** `PATCH /api/bookings/69ba8a415ea070bc51060b2e`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "status": "confirmed"
+}
+```
+
+**Status Options:**
+- `pending` - Booking is pending
+- `confirmed` - Booking is confirmed
+- `cancelled` - Booking is cancelled
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Booking updated successfully",
+  "data": {
+    "_id": "69ba8a415ea070bc51060b2e",
+    "userId": "john@example.com",
+    "itemId": "69ba8a415ea070bc51060b1d",
+    "quantity": 2,
+    "totalPrice": 10000,
+    "status": "confirmed"
+  }
+}
+```
+
+**Access:** Admin only
+
+---
+
+### 5. Delete Booking
+
+Delete a booking (Admin only).
+
+**Endpoint:** `DELETE /api/bookings/:id`
+
+**Example:** `DELETE /api/bookings/69ba8a415ea070bc51060b2e`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Booking deleted successfully"
+}
+```
+
+**Access:** Admin only
+
+---
+
 ## File Upload API
 
 Upload images to imgBB cloud storage.
@@ -965,6 +1162,11 @@ api.interceptors.response.use(
 | GET | `/api/items/:id` | No | Get item by ID |
 | PATCH | `/api/items/:id` | Yes | Update item |
 | DELETE | `/api/items/:id` | Yes | Delete item |
+| POST | `/api/bookings` | Yes | Create booking |
+| GET | `/api/bookings` | Yes | Get bookings |
+| GET | `/api/bookings/:id` | Yes | Get booking by ID |
+| PATCH | `/api/bookings/:id` | Yes (Admin) | Update booking status |
+| DELETE | `/api/bookings/:id` | Yes (Admin) | Delete booking |
 | POST | `/api/v1/upload/profile` | No | Upload single image |
 | POST | `/api/v1/upload/travel-images` | No | Upload multiple images |
 | DELETE | `/api/v1/upload/delete` | No | Delete uploaded image |

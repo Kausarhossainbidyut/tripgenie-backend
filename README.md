@@ -18,6 +18,7 @@ A comprehensive backend API for TripGenie AI Travel Application built with Node.
 - **[Authentication Guide](API_DOCUMENTATION.md#authentication-api)** - Login/Register/Refresh token
 - **[Users API](API_DOCUMENTATION.md#users-api)** - User CRUD operations
 - **[Items API](API_DOCUMENTATION.md#items-api)** - Destination/Item CRUD operations
+- **[Bookings API](API_DOCUMENTATION.md#bookings-api)** - Booking/Reservation system
 - **[File Upload API](API_DOCUMENTATION.md#file-upload-api)** - Image upload to cloud
 - **[Frontend Integration](API_DOCUMENTATION.md#frontend-integration-guide)** - Code examples for React/Vue/Angular
 
@@ -107,6 +108,7 @@ For complete API documentation with detailed examples, see **[API_DOCUMENTATION.
 | **Authentication** | Register, Login, Refresh Token | No |
 | **Users** | Get All, Get By ID, Update, Delete | Yes |
 | **Items** | Create, Get All, Get By ID, Update, Delete | Mixed |
+| **Bookings** | Create, Get All, Get By ID, Update, Delete | Yes |
 | **File Upload** | Single, Multiple, Delete | No |
 
 ### Quick Examples

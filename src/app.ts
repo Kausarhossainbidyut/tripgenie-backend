@@ -7,6 +7,7 @@ import uploadRoutes from './routers/upload.routes';
 import { AuthRoutes } from './routers/auth.routes';
 import { UserRoutes } from './routers/user.routes';
 import { ItemRoutes } from './routers/item.routes';
+import { BookingRoutes } from './routers/booking.routes';
 
 const app: Application = express();
 
@@ -22,6 +23,7 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/auth', AuthRoutes);
 app.use('/api/users', UserRoutes);
 app.use('/api/items', ItemRoutes);
+app.use('/api/bookings', BookingRoutes);
 
 // Health Check / Root Route
 // ---------------------

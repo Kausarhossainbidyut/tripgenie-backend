@@ -1,0 +1,19 @@
+import { model, Schema } from "mongoose";
+import { IBooking } from "../types/user.interface";
+
+const bookingSchema = new Schema<IBooking>(
+  {
+    userId: { type: String, required: true, ref: 'User' },
+    itemId: { type: String, required: true, ref: 'Item' },
+    quantity: { type: Number, required: true, min: 1, default: 1 },
+    totalPrice: { type: Number, required: true, min: 0 },
+    status: { 
+      type: String, 
+      enum: ['pending', 'confirmed', 'cancelled'], 
+      default: 'pending' 
+    },
+  },
+  { timestamps: true },
+);
+
+export const Booking = model<IBooking>('Booking', bookingSchema);

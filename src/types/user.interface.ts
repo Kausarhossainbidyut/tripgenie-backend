@@ -34,3 +34,14 @@ export interface IItem {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface IBooking {
+  _id?: string;
+  userId: string;
+  itemId: string;
+  quantity: number;
+  totalPrice: number;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  createdAt?: Date;
+  updatedAt?: Date;
+}
