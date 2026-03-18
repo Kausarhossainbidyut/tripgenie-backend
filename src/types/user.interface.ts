@@ -56,3 +56,11 @@ export interface IReview {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface IWishlist {
+  _id?: string;
+  userId: string;
+  itemId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
