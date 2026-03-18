@@ -10,6 +10,7 @@ import { ItemRoutes } from './routers/item.routes';
 import { BookingRoutes } from './routers/booking.routes';
 import { ReviewRoutes } from './routers/review.routes';
 import { WishlistRoutes } from './routers/wishlist.routes';
+import { AIRoutes } from './routers/ai.routes';
 
 const app: Application = express();
 
@@ -28,6 +29,7 @@ app.use('/api/items', ItemRoutes);
 app.use('/api/bookings', BookingRoutes);
 app.use('/api/reviews', ReviewRoutes);
 app.use('/api/wishlist', WishlistRoutes);
+app.use('/api/ai', AIRoutes);
 
 // Health Check / Root Route
 // ---------------------

@@ -10,6 +10,7 @@ const config = {
   jwt_secret: process.env.JWT_SECRET || 'default_jwt_secret',
   jwt_expires_in: process.env.JWT_EXPIRES_IN || '7d',
   gemini_api_key: process.env.GEMINI_API_KEY || '',
+  openrouter_api_key: process.env.OPENROUTER_API_KEY || '',
   client_url: process.env.CLIENT_URL || 'http://localhost:3000',
   imgbb_api_key: process.env.IMGBB_API_KEY || '',
 };
