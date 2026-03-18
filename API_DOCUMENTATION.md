@@ -6,6 +6,7 @@ Complete API reference for TripGenie Backend.
 
 - [Authentication API](#authentication-api)
 - [Users API](#users-api)
+- [Items API](#items-api)
 - [File Upload API](#file-upload-api)
 - [Frontend Integration Guide](#frontend-integration-guide)
 - [Error Codes](#error-codes)
@@ -296,6 +297,223 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Access:** Admin only
+
+---
+
+## Items API
+
+Items (Destinations) management API. Items represent travel destinations with details like title, description, price, location, etc.
+
+### 1. Create Item
+
+Create a new destination/item.
+
+**Endpoint:** `POST /api/items`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "title": "Cox's Bazar Beach",
+  "description": "World's longest natural sea beach",
+  "image": "https://i.ibb.co/.../cox.jpg",
+  "price": 5000,
+  "rating": 4.5,
+  "location": "Cox's Bazar, Bangladesh",
+  "category": "Beach"
+}
+```
+
+**Required Fields:**
+- `title` (string) - Item title
+- `description` (string) - Item description
+- `image` (string) - Image URL
+- `price` (number) - Price in BDT
+- `location` (string) - Location name
+- `category` (string) - Category (Beach, Mountain, etc.)
+
+**Optional Fields:**
+- `rating` (number) - Rating 0-5 (default: 0)
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Item created successfully",
+  "data": {
+    "_id": "69ba8a415ea070bc51060b1d",
+    "title": "Cox's Bazar Beach",
+    "description": "World's longest natural sea beach",
+    "image": "https://i.ibb.co/.../cox.jpg",
+    "price": 5000,
+    "rating": 4.5,
+    "location": "Cox's Bazar, Bangladesh",
+    "category": "Beach",
+    "createdBy": "john@example.com",
+    "createdAt": "2026-03-18T11:19:29.856Z",
+    "updatedAt": "2026-03-18T11:19:29.856Z"
+  }
+}
+```
+
+**Access:** Authenticated users only
+
+---
+
+### 2. Get All Items
+
+Retrieve list of all items.
+
+**Endpoint:** `GET /api/items`
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Items fetched successfully",
+  "data": [
+    {
+      "_id": "69ba8a415ea070bc51060b1d",
+      "title": "Cox's Bazar Beach",
+      "description": "World's longest natural sea beach",
+      "image": "https://i.ibb.co/.../cox.jpg",
+      "price": 5000,
+      "rating": 4.5,
+      "location": "Cox's Bazar, Bangladesh",
+      "category": "Beach",
+      "createdBy": "john@example.com"
+    }
+  ]
+}
+```
+
+**Access:** Public (No authentication required)
+
+---
+
+### 3. Get Item by ID
+
+Retrieve specific item details.
+
+**Endpoint:** `GET /api/items/:id`
+
+**Example:** `GET /api/items/69ba8a415ea070bc51060b1d`
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Item fetched successfully",
+  "data": {
+    "_id": "69ba8a415ea070bc51060b1d",
+    "title": "Cox's Bazar Beach",
+    "description": "World's longest natural sea beach",
+    "image": "https://i.ibb.co/.../cox.jpg",
+    "price": 5000,
+    "rating": 4.5,
+    "location": "Cox's Bazar, Bangladesh",
+    "category": "Beach",
+    "createdBy": "john@example.com",
+    "createdAt": "2026-03-18T11:19:29.856Z",
+    "updatedAt": "2026-03-18T11:19:29.856Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "success": false,
+  "message": "Item not found"
+}
+```
+
+**Access:** Public (No authentication required)
+
+---
+
+### 4. Update Item
+
+Update item information.
+
+**Endpoint:** `PATCH /api/items/:id`
+
+**Example:** `PATCH /api/items/69ba8a415ea070bc51060b1d`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "title": "Updated Title",
+  "price": 6000,
+  "rating": 4.8
+}
+```
+
+**Updatable Fields:**
+- `title` (string)
+- `description` (string)
+- `image` (string)
+- `price` (number)
+- `rating` (number)
+- `location` (string)
+- `category` (string)
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Item updated successfully",
+  "data": {
+    "_id": "69ba8a415ea070bc51060b1d",
+    "title": "Updated Title",
+    "description": "World's longest natural sea beach",
+    "image": "https://i.ibb.co/.../cox.jpg",
+    "price": 6000,
+    "rating": 4.8,
+    "location": "Cox's Bazar, Bangladesh",
+    "category": "Beach",
+    "createdBy": "john@example.com"
+  }
+}
+```
+
+**Access:** Authenticated users only
+
+---
+
+### 5. Delete Item
+
+Delete an item.
+
+**Endpoint:** `DELETE /api/items/:id`
+
+**Example:** `DELETE /api/items/69ba8a415ea070bc51060b1d`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Item deleted successfully"
+}
+```
+
+**Access:** Authenticated users only
 
 ---
 
@@ -662,6 +880,13 @@ api.interceptors.response.use(
 // const users = await api.get('/users');
 // const user = await api.get('/users/123');
 // await api.patch('/users/123', { name: 'New Name' });
+
+// Items API with Axios
+// const items = await api.get('/items');           // Get all items
+// const item = await api.get('/items/123');       // Get single item
+// await api.post('/items', itemData);             // Create item (auth required)
+// await api.patch('/items/123', updateData);      // Update item (auth required)
+// await api.delete('/items/123');                 // Delete item (auth required)
 ```
 
 ---
@@ -735,6 +960,11 @@ api.interceptors.response.use(
 | GET | `/api/users/:id` | Yes | Get user by ID |
 | PATCH | `/api/users/:id` | Yes | Update user |
 | DELETE | `/api/users/:id` | Yes (Admin) | Delete user |
+| POST | `/api/items` | Yes | Create new item |
+| GET | `/api/items` | No | Get all items |
+| GET | `/api/items/:id` | No | Get item by ID |
+| PATCH | `/api/items/:id` | Yes | Update item |
+| DELETE | `/api/items/:id` | Yes | Delete item |
 | POST | `/api/v1/upload/profile` | No | Upload single image |
 | POST | `/api/v1/upload/travel-images` | No | Upload multiple images |
 | DELETE | `/api/v1/upload/delete` | No | Delete uploaded image |
