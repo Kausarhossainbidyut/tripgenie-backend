@@ -50,6 +50,8 @@ export interface IBooking {
   quantity: number;
   totalPrice: number;
   status: 'pending' | 'confirmed' | 'cancelled';
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentIntentId?: string;
   refundStatus?: 'none' | 'pending' | 'completed';
   refundAmount?: number;
   cancelledAt?: Date;

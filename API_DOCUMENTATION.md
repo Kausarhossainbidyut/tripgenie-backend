@@ -12,6 +12,7 @@ Complete API reference for TripGenie Backend.
 - [Wishlist API](#wishlist-api)
 - [AI Features API](#ai-features-api)
 - [Dashboard API](#dashboard-api)
+- [Payment API](#payment-api)
 - [File Upload API](#file-upload-api)
 - [Frontend Integration Guide](#frontend-integration-guide)
 - [Error Codes](#error-codes)
@@ -1302,6 +1303,158 @@ Summarize all reviews for a specific item/destination.
 ```
 
 **Access:** Public (no authentication required)
+
+---
+
+## Payment API
+
+Stripe payment integration for processing bookings.
+
+### 1. Create Payment Intent
+
+Create a Stripe payment intent for a booking.
+
+**Endpoint:** `POST /api/payments/create-intent`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "bookingId": "69ba8a415ea070bc51060b2e"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Payment intent created successfully",
+  "data": {
+    "clientSecret": "pi_3O...secret",
+    "paymentIntentId": "pi_3O...",
+    "amount": 10000,
+    "currency": "usd"
+  }
+}
+```
+
+**Access:** Authenticated users (own bookings only)
+
+---
+
+### 2. Confirm Payment
+
+Confirm payment after successful Stripe payment.
+
+**Endpoint:** `POST /api/payments/confirm`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "paymentIntentId": "pi_3O..."
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Payment confirmed successfully",
+  "data": {
+    "booking": {
+      "_id": "69ba8a415ea070bc51060b2e",
+      "status": "confirmed",
+      "paymentStatus": "paid"
+    },
+    "paymentStatus": "succeeded"
+  }
+}
+```
+
+**Access:** Authenticated users
+
+---
+
+### 3. Get Payment Status
+
+Check payment status for a booking.
+
+**Endpoint:** `GET /api/payments/status/:bookingId`
+
+**Example:** `GET /api/payments/status/69ba8a415ea070bc51060b2e`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Payment status retrieved",
+  "data": {
+    "bookingId": "69ba8a415ea070bc51060b2e",
+    "paymentStatus": "paid",
+    "paymentIntentId": "pi_3O...",
+    "totalPrice": 10000
+  }
+}
+```
+
+**Access:** User (own bookings) or Admin
+
+---
+
+### 4. Process Refund
+
+Process a refund for a paid booking (Admin only).
+
+**Endpoint:** `POST /api/payments/refund`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "bookingId": "69ba8a415ea070bc51060b2e"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Refund processed successfully",
+  "data": {
+    "booking": {
+      "_id": "69ba8a415ea070bc51060b2e",
+      "paymentStatus": "refunded",
+      "refundStatus": "completed"
+    },
+    "refundId": "re_3O...",
+    "refundAmount": 10000,
+    "status": "succeeded"
+  }
+}
+```
+
+**Access:** Admin only
 
 ---
 
