@@ -262,6 +262,27 @@ Content-Type: application/json
 **Updatable Fields:**
 - `name` (string) - User's full name
 - `avatar` (string) - URL to profile image
+- `phone` (string) - Phone number
+- `address` (object) - Address details
+  - `street` (string)
+  - `city` (string)
+  - `country` (string)
+  - `zipCode` (string)
+
+**Request Body Example:**
+```json
+{
+  "name": "John Doe",
+  "avatar": "https://i.ibb.co/.../image.jpg",
+  "phone": "+8801234567890",
+  "address": {
+    "street": "123 Main St",
+    "city": "Dhaka",
+    "country": "Bangladesh",
+    "zipCode": "1200"
+  }
+}
+```
 
 **Response (200 OK):**
 ```json
@@ -302,6 +323,50 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Access:** Admin only
+
+---
+
+### 5. Get User Bookings
+
+Get all bookings for a specific user with item details.
+
+**Endpoint:** `GET /api/users/:id/bookings`
+
+**Example:** `GET /api/users/69ba8a415ea070bc51060b1d/bookings`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "User bookings fetched successfully",
+  "data": [
+    {
+      "_id": "69ba8a415ea070bc51060b1e",
+      "userId": "john@example.com",
+      "itemId": {
+        "_id": "69ba8a415ea070bc51060b1d",
+        "title": "Cox's Bazar Beach",
+        "description": "World's longest sea beach",
+        "image": "https://i.ibb.co/.../image.jpg",
+        "price": 5000,
+        "location": "Cox's Bazar",
+        "category": "beach"
+      },
+      "quantity": 2,
+      "totalPrice": 10000,
+      "status": "confirmed",
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    }
+  ]
+}
+```
+
+**Access:** User (own bookings only) or Admin
 
 ---
 

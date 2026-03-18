@@ -163,11 +163,11 @@ const getUserById = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, avatar } = req.body;
+    const { name, avatar, phone, address } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { name, avatar },
+      { name, avatar, phone, address },
       { new: true }
     ).select('-password');
 
@@ -213,6 +213,52 @@ const deleteUser = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete user',
+      error: err.message,
+    });
+  }
+};
+
+// Get user bookings
+const getUserBookings = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.email;
+    const userRole = req.user?.role;
+
+    // Check if user is requesting their own bookings or is admin
+    const targetUser = await User.findById(id);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    if (userRole !== 'admin' && targetUser.email !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only view your own bookings.',
+      });
+    }
+
+    // Get bookings with item details
+    const bookings = await Booking.find({ userId: targetUser.email })
+      .populate({
+        path: 'itemId',
+        model: 'Item',
+        select: 'title description image price location category'
+      })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      message: 'User bookings fetched successfully',
+      data: bookings,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user bookings',
       error: err.message,
     });
   }
@@ -271,4 +317,5 @@ export const userControllers = {
   getUserById,
   updateUser,
   deleteUser,
+  getUserBookings,
 };

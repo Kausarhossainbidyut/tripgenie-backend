@@ -5,6 +5,13 @@ export interface IUser {
   password?: string;
   role: 'admin' | 'user';
   avatar?: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+    zipCode?: string;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -16,4 +16,7 @@ router.patch('/:id', verifyToken, userControllers.updateUser);
 // Delete user (protected, admin only)
 router.delete('/:id', verifyToken, isAdmin, userControllers.deleteUser);
 
+// Get user bookings (protected)
+router.get('/:id/bookings', verifyToken, userControllers.getUserBookings);
+
 export const UserRoutes = router;
