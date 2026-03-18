@@ -4,6 +4,8 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 // import router from './routes';
 import uploadRoutes from './routers/upload.routes';
+import { AuthRoutes } from './routers/auth.routes';
+import { UserRoutes } from './routers/user.routes';
 
 const app: Application = express();
 
@@ -16,6 +18,8 @@ app.use(express.json());
 // ---------------------
 // app.use('/api/v1', router);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/auth', AuthRoutes);
+app.use('/api/users', UserRoutes);
 
 // Health Check / Root Route
 // ---------------------
