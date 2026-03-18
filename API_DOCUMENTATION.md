@@ -11,6 +11,7 @@ Complete API reference for TripGenie Backend.
 - [Reviews API](#reviews-api)
 - [Wishlist API](#wishlist-api)
 - [AI Features API](#ai-features-api)
+- [Dashboard API](#dashboard-api)
 - [File Upload API](#file-upload-api)
 - [Frontend Integration Guide](#frontend-integration-guide)
 - [Error Codes](#error-codes)
@@ -1117,6 +1118,86 @@ Summarize all reviews for a specific item/destination.
 ```
 
 **Access:** Public (no authentication required)
+
+---
+
+## Dashboard API
+
+Admin dashboard analytics and statistics.
+
+### 1. Get Dashboard Stats
+
+Get overall statistics for admin dashboard.
+
+**Endpoint:** `GET /api/dashboard/stats`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Dashboard stats retrieved successfully",
+  "data": {
+    "totalUsers": 5,
+    "totalItems": 6,
+    "totalBookings": 3,
+    "totalReviews": 2,
+    "totalRevenue": 555000,
+    "pendingBookings": 3,
+    "confirmedBookings": 0
+  }
+}
+```
+
+**Access:** Admin only
+
+---
+
+### 2. Get Chart Data
+
+Get data for charts and graphs.
+
+**Endpoint:** `GET /api/dashboard/chart-data`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Chart data retrieved successfully",
+  "data": {
+    "bookingsByMonth": [
+      {
+        "_id": { "year": 2024, "month": 1 },
+        "count": 10,
+        "revenue": 5000
+      }
+    ],
+    "bookingsByStatus": [
+      { "_id": "confirmed", "count": 180 },
+      { "_id": "pending", "count": 10 }
+    ],
+    "usersByRole": [
+      { "_id": "user", "count": 95 },
+      { "_id": "admin", "count": 5 }
+    ],
+    "itemsByCategory": [
+      { "_id": "beach", "count": 20 },
+      { "_id": "mountain", "count": 15 }
+    ]
+  }
+}
+```
+
+**Access:** Admin only
 
 ---
 
