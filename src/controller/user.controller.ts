@@ -4,6 +4,23 @@ import jwt, { Secret } from 'jsonwebtoken';
 import config from '../config/db';
 import { User } from '../models/user.model';
 
+// Generate tokens helper
+const generateTokens = (email: string, role: string) => {
+  const accessToken = jwt.sign(
+    { email, role, type: 'access' },
+    config.jwt_secret as Secret,
+    { expiresIn: '15m' } // Short lived access token
+  );
+
+  const refreshToken = jwt.sign(
+    { email, role, type: 'refresh' },
+    config.jwt_secret as Secret,
+    { expiresIn: '7d' } // Long lived refresh token
+  );
+
+  return { accessToken, refreshToken };
+};
+
 // Register user
 const register = async (req: Request, res: Response) => {
   try {
@@ -29,13 +46,6 @@ const register = async (req: Request, res: Response) => {
       password: hashedPassword,
       avatar: avatar || ''
     });
-    
-    // Generate token
-    const token = jwt.sign(
-      { email: savedUser.email, role: savedUser.role },
-      config.jwt_secret as Secret,
-      { expiresIn: config.jwt_expires_in as any }
-    );
 
     // Omit password from response
     const userResponse = savedUser.toObject();
@@ -43,9 +53,8 @@ const register = async (req: Request, res: Response) => {
 
     res.status(201).json({
       success: true,
-      message: 'User registered successfully',
+      message: 'User registered successfully. Please login to get access token.',
       data: userResponse,
-      token,
     });
   } catch (err: any) {
     res.status(500).json({
@@ -79,12 +88,8 @@ const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate token
-    const token = jwt.sign(
-      { email: user.email, role: user.role },
-      config.jwt_secret as Secret,
-      { expiresIn: config.jwt_expires_in as any }
-    );
+    // Generate access and refresh tokens
+    const { accessToken, refreshToken } = generateTokens(user.email, user.role);
 
     // Omit password from response
     const userResponse = user.toObject();
@@ -93,8 +98,11 @@ const login = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: 'User logged in successfully',
-      token,
-      data: userResponse, 
+      data: {
+        user: userResponse,
+        accessToken,
+        refreshToken,
+      },
     });
 
   } catch (err: any) {
@@ -210,9 +218,55 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
+// Refresh token
+const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token is required',
+      });
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, config.jwt_secret as Secret) as { 
+      email: string; 
+      role: string; 
+      type: string 
+    };
+
+    // Check if it's a refresh token
+    if (decoded.type !== 'refresh') {
+      return res.status(403).json({
+        success: false,
+        message: 'Invalid token type',
+      });
+    }
+
+    // Generate new tokens
+    const tokens = generateTokens(decoded.email, decoded.role);
+
+    res.status(200).json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: tokens,
+    });
+
+  } catch (err: any) {
+    res.status(403).json({
+      success: false,
+      message: 'Invalid or expired refresh token',
+      error: err.message,
+    });
+  }
+};
+
 export const userControllers = {
   register,
   login,
+  refreshToken,
   getUsers,
   getUserById,
   updateUser,

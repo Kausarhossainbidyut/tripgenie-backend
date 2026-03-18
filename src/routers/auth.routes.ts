@@ -9,12 +9,7 @@ router.post('/register', userControllers.register);
 // Login user
 router.post('/login', userControllers.login);
 
-// Refresh token (placeholder - can be implemented later)
-router.post('/refresh-token', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Refresh token endpoint - implement as needed'
-  });
-});
+// Refresh token
+router.post('/refresh-token', userControllers.refreshToken);
 
 export const AuthRoutes = router;
