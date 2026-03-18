@@ -10,6 +10,7 @@ Complete API reference for TripGenie Backend.
 - [Bookings API](#bookings-api)
 - [Reviews API](#reviews-api)
 - [Wishlist API](#wishlist-api)
+- [AI Features API](#ai-features-api)
 - [File Upload API](#file-upload-api)
 - [Frontend Integration Guide](#frontend-integration-guide)
 - [Error Codes](#error-codes)
@@ -977,6 +978,145 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Access:** Wishlist owner only
+
+---
+
+## AI Features API
+
+AI-powered features using OpenRouter API.
+
+### 1. AI Chatbot
+
+Chat with AI travel assistant for travel suggestions and recommendations.
+
+**Endpoint:** `POST /api/ai/chat`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "message": "Suggest a 3-day trip under $200"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "AI response generated",
+  "data": {
+    "reply": "Here's a 3-day budget trip suggestion for Bangladesh...",
+    "userMessage": "Suggest a 3-day trip under $200"
+  }
+}
+```
+
+**Access:** Public (no authentication required)
+
+---
+
+### 2. AI Description Generator
+
+Generate attractive travel description for any destination.
+
+**Endpoint:** `POST /api/ai/generate-description`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "title": "Cox's Bazar Beach"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Description generated successfully",
+  "data": {
+    "title": "Cox's Bazar Beach",
+    "description": "Cox's Bazar is the world's longest natural sea beach..."
+  }
+}
+```
+
+**Access:** Authenticated users only
+
+---
+
+### 3. AI Recommendations
+
+Get personalized destination recommendations based on budget and preferences.
+
+**Endpoint:** `POST /api/ai/recommendations`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "budget": 5000,
+  "location": "beach",
+  "preferences": "family friendly, peaceful"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Recommendations generated successfully",
+  "data": {
+    "budget": 5000,
+    "location": "beach",
+    "preferences": "family friendly, peaceful",
+    "recommendations": "Here are 3-5 destinations that match your criteria..."
+  }
+}
+```
+
+**Access:** Public (no authentication required)
+
+---
+
+### 4. AI Review Summary
+
+Summarize all reviews for a specific item/destination.
+
+**Endpoint:** `POST /api/ai/review-summary`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "itemId": "69ba8a415ea070bc51060b1d"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Reviews summarized successfully",
+  "data": {
+    "itemId": "69ba8a415ea070bc51060b1d",
+    "itemTitle": "Cox's Bazar Beach",
+    "totalReviews": 5,
+    "averageRating": "4.5",
+    "summary": "Overall, visitors love the scenic beauty..."
+  }
+}
+```
+
+**Access:** Public (no authentication required)
 
 ---
 
