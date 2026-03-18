@@ -46,3 +46,13 @@ export interface IBooking {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface IReview {
+  _id?: string;
+  rating: number;
+  comment: string;
+  userId: string;
+  itemId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}

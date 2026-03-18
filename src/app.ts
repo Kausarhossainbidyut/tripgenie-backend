@@ -8,6 +8,7 @@ import { AuthRoutes } from './routers/auth.routes';
 import { UserRoutes } from './routers/user.routes';
 import { ItemRoutes } from './routers/item.routes';
 import { BookingRoutes } from './routers/booking.routes';
+import { ReviewRoutes } from './routers/review.routes';
 
 const app: Application = express();
 
@@ -24,6 +25,7 @@ app.use('/api/auth', AuthRoutes);
 app.use('/api/users', UserRoutes);
 app.use('/api/items', ItemRoutes);
 app.use('/api/bookings', BookingRoutes);
+app.use('/api/reviews', ReviewRoutes);
 
 // Health Check / Root Route
 // ---------------------
