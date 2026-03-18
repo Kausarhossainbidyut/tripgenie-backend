@@ -20,6 +20,7 @@ A comprehensive backend API for TripGenie AI Travel Application built with Node.
 - **[Items API](API_DOCUMENTATION.md#items-api)** - Destination/Item CRUD with search/filter
 - **[Bookings API](API_DOCUMENTATION.md#bookings-api)** - Booking/Reservation system
 - **[Reviews API](API_DOCUMENTATION.md#reviews-api)** - Item reviews and ratings
+- **[Wishlist API](API_DOCUMENTATION.md#wishlist-api)** - User favorites/wishlist
 - **[File Upload API](API_DOCUMENTATION.md#file-upload-api)** - Image upload to cloud
 - **[Frontend Integration](API_DOCUMENTATION.md#frontend-integration-guide)** - Code examples for React/Vue/Angular
 
@@ -30,6 +31,7 @@ A comprehensive backend API for TripGenie AI Travel Application built with Node.
 - **Items/Destinations**: CRUD with search, filter, sort, and pagination
 - **Bookings**: Reservation system with quantity management
 - **Reviews**: Item reviews and ratings with ownership control
+- **Wishlist**: User favorites with duplicate prevention
 - **File Upload**: Image upload to imgBB cloud storage with delete functionality
 - **Search & Filter**: Advanced querying for items (search, price range, category, sort)
 - **Security**: Password hashing with bcrypt, protected routes with middleware
@@ -115,6 +117,7 @@ For complete API documentation with detailed examples, see **[API_DOCUMENTATION.
 | **Items** | Create, Get All (with search/filter), Get By ID, Update, Delete | Mixed |
 | **Bookings** | Create, Get All, Get By ID, Update, Delete | Yes |
 | **Reviews** | Create, Get By Item, Delete | Mixed |
+| **Wishlist** | Add, Get All, Check Status, Remove | Yes |
 | **File Upload** | Single, Multiple, Delete | No |
 
 ### Quick Examples

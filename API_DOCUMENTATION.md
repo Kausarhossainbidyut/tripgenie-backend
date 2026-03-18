@@ -9,6 +9,7 @@ Complete API reference for TripGenie Backend.
 - [Items API](#items-api)
 - [Bookings API](#bookings-api)
 - [Reviews API](#reviews-api)
+- [Wishlist API](#wishlist-api)
 - [File Upload API](#file-upload-api)
 - [Frontend Integration Guide](#frontend-integration-guide)
 - [Error Codes](#error-codes)
@@ -840,6 +841,142 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Access:** Review owner or Admin
+
+---
+
+## Wishlist API
+
+Manage user wishlist/favorites.
+
+### 1. Add to Wishlist
+
+Add an item to user's wishlist.
+
+**Endpoint:** `POST /api/wishlist`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "itemId": "69ba8a415ea070bc51060b1d"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Added to wishlist successfully",
+  "data": {
+    "_id": "69ba8a415ea070bc51060b1f",
+    "userId": "john@example.com",
+    "itemId": "69ba8a415ea070bc51060b1d",
+    "createdAt": "2026-03-18T10:00:00.000Z",
+    "updatedAt": "2026-03-18T10:00:00.000Z"
+  }
+}
+```
+
+**Access:** Authenticated users only
+
+---
+
+### 2. Get User's Wishlist
+
+Get all items in user's wishlist with item details.
+
+**Endpoint:** `GET /api/wishlist`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Wishlist fetched successfully",
+  "data": [
+    {
+      "_id": "69ba8a415ea070bc51060b1f",
+      "userId": "john@example.com",
+      "itemId": {
+        "_id": "69ba8a415ea070bc51060b1d",
+        "title": "Cox's Bazar Beach",
+        "description": "World's longest natural sea beach",
+        "image": "https://i.ibb.co/.../cox.jpg",
+        "price": 5000,
+        "rating": 4.5,
+        "location": "Cox's Bazar, Bangladesh",
+        "category": "Beach"
+      },
+      "createdAt": "2026-03-18T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Access:** Authenticated users only
+
+---
+
+### 3. Check Wishlist Status
+
+Check if a specific item is in user's wishlist.
+
+**Endpoint:** `GET /api/wishlist/check/:itemId`
+
+**Example:** `GET /api/wishlist/check/69ba8a415ea070bc51060b1d`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Wishlist status checked",
+  "data": {
+    "isInWishlist": true,
+    "wishlistId": "69ba8a415ea070bc51060b1f"
+  }
+}
+```
+
+**Access:** Authenticated users only
+
+---
+
+### 4. Remove from Wishlist
+
+Remove an item from user's wishlist.
+
+**Endpoint:** `DELETE /api/wishlist/:id`
+
+**Example:** `DELETE /api/wishlist/69ba8a415ea070bc51060b1f`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Removed from wishlist successfully"
+}
+```
+
+**Access:** Wishlist owner only
 
 ---
 
