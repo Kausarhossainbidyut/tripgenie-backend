@@ -6,6 +6,7 @@ import cors from 'cors';
 import uploadRoutes from './routers/upload.routes';
 import { AuthRoutes } from './routers/auth.routes';
 import { UserRoutes } from './routers/user.routes';
+import { ItemRoutes } from './routers/item.routes';
 
 const app: Application = express();
 
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/auth', AuthRoutes);
 app.use('/api/users', UserRoutes);
+app.use('/api/items', ItemRoutes);
 
 // Health Check / Root Route
 // ---------------------
