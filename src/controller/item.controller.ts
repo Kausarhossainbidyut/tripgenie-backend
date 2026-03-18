@@ -35,14 +35,76 @@ const createItem = async (req: Request, res: Response) => {
   }
 };
 
-// Get all items
+// Get all items with search, filter, sort, pagination
 const getItems = async (req: Request, res: Response) => {
   try {
-    const items = await Item.find().sort({ createdAt: -1 });
+    const { 
+      search, 
+      category, 
+      priceMin, 
+      priceMax, 
+      sort, 
+      page = 1, 
+      limit = 10 
+    } = req.query;
+
+    // Build query
+    const query: any = {};
+
+    // Search by title or description
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Filter by category
+    if (category) {
+      query.category = { $regex: category, $options: 'i' };
+    }
+
+    // Filter by price range
+    if (priceMin || priceMax) {
+      query.price = {};
+      if (priceMin) query.price.$gte = Number(priceMin);
+      if (priceMax) query.price.$lte = Number(priceMax);
+    }
+
+    // Build sort
+    let sortOption: any = {};
+    if (sort) {
+      const sortField = (sort as string).replace('-', '');
+      const sortOrder = (sort as string).startsWith('-') ? -1 : 1;
+      sortOption[sortField] = sortOrder;
+    } else {
+      sortOption = { createdAt: -1 };
+    }
+
+    // Pagination
+    const pageNum = Math.max(1, Number(page));
+    const limitNum = Math.max(1, Number(limit));
+    const skip = (pageNum - 1) * limitNum;
+
+    // Execute query
+    const items = await Item.find(query)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(limitNum);
+
+    // Get total count
+    const total = await Item.countDocuments(query);
+
     res.status(200).json({
       success: true,
       message: 'Items fetched successfully',
       data: items,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum)
+      }
     });
   } catch (err: any) {
     res.status(500).json({
