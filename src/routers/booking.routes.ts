@@ -19,4 +19,7 @@ router.patch('/:id', verifyToken, isAdmin, bookingControllers.updateBooking);
 // Delete booking (protected - admin only)
 router.delete('/:id', verifyToken, isAdmin, bookingControllers.deleteBooking);
 
+// Cancel booking (protected - user can cancel own, admin can cancel any)
+router.patch('/:id/cancel', verifyToken, bookingControllers.cancelBooking);
+
 export const BookingRoutes = router;

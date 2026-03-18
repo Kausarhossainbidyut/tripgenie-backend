@@ -12,6 +12,14 @@ const bookingSchema = new Schema<IBooking>(
       enum: ['pending', 'confirmed', 'cancelled'], 
       default: 'pending' 
     },
+    refundStatus: { 
+      type: String, 
+      enum: ['none', 'pending', 'completed'], 
+      default: 'none' 
+    },
+    refundAmount: { type: Number, default: 0 },
+    cancelledAt: { type: Date },
+    cancellationReason: { type: String, default: '' },
   },
   { timestamps: true },
 );

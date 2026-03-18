@@ -159,6 +159,69 @@ Get new access token when current one expires.
 
 ---
 
+### 4. Forgot Password
+
+Request a password reset email.
+
+**Endpoint:** `POST /api/auth/forgot-password`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "If an account exists, a password reset email has been sent."
+}
+```
+
+**Note:** For security, this endpoint returns the same message whether the email exists or not.
+
+---
+
+### 5. Reset Password
+
+Reset password using the token from the email.
+
+**Endpoint:** `POST /api/auth/reset-password`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "newPassword": "newpassword123"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Password reset successfully"
+}
+```
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "success": false,
+  "message": "Invalid or expired token"
+}
+```
+
+**Note:** Reset token is valid for 1 hour.
+
+---
+
 ## Users API
 
 All user routes require authentication. Include the access token in the Authorization header:
@@ -811,6 +874,62 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Access:** Admin only
+
+---
+
+### 6. Cancel Booking
+
+Cancel a booking with automatic stock restore and refund calculation.
+
+**Endpoint:** `PATCH /api/bookings/:id/cancel`
+
+**Example:** `PATCH /api/bookings/69ba8a415ea070bc51060b2e/cancel`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "reason": "Change of plans"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Booking cancelled successfully",
+  "data": {
+    "booking": {
+      "_id": "69ba8a415ea070bc51060b2e",
+      "userId": "john@example.com",
+      "itemId": "69ba8a415ea070bc51060b1d",
+      "quantity": 2,
+      "totalPrice": 10000,
+      "status": "cancelled",
+      "refundStatus": "pending",
+      "refundAmount": 10000,
+      "cancelledAt": "2024-01-20T10:30:00.000Z",
+      "cancellationReason": "Change of plans"
+    },
+    "refundAmount": 10000,
+    "stockRestored": 2
+  }
+}
+```
+
+**Refund Policy:**
+- **Pending bookings:** 100% refund
+- **Confirmed bookings:** 80% refund (20% cancellation fee)
+- **Already cancelled:** Cannot cancel again
+
+**Stock Restore:** Item quantity is automatically restored when booking is cancelled.
+
+**Access:** User (own bookings) or Admin
 
 ---
 

@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import jwt, { Secret } from 'jsonwebtoken';
 import config from '../config/db';
 import { User } from '../models/user.model';
+import { Booking } from '../models/booking.model';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../utils/email.service';
 
 // Generate tokens helper
 const generateTokens = (email: string, role: string) => {
@@ -50,6 +52,14 @@ const register = async (req: Request, res: Response) => {
     // Omit password from response
     const userResponse = savedUser.toObject();
     delete userResponse.password;
+
+    // Send welcome email
+    try {
+      await sendWelcomeEmail(savedUser.email, savedUser.name);
+    } catch (emailErr) {
+      console.error('Failed to send welcome email:', emailErr);
+      // Don't fail registration if email fails
+    }
 
     res.status(201).json({
       success: true,
@@ -309,6 +319,113 @@ const refreshToken = async (req: Request, res: Response) => {
   }
 };
 
+// Forgot password - send reset email
+const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Don't reveal if user exists
+      return res.status(200).json({
+        success: true,
+        message: 'If an account exists, a password reset email has been sent.',
+      });
+    }
+
+    // Generate reset token (valid for 1 hour)
+    const resetToken = jwt.sign(
+      { email: user.email, type: 'password-reset' },
+      config.jwt_secret as Secret,
+      { expiresIn: '1h' }
+    );
+
+    // Send password reset email
+    try {
+      await sendPasswordResetEmail(user.email, user.name, resetToken);
+    } catch (emailErr) {
+      console.error('Failed to send password reset email:', emailErr);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send password reset email',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'If an account exists, a password reset email has been sent.',
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process forgot password request',
+      error: err.message,
+    });
+  }
+};
+
+// Reset password with token
+const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token and new password are required',
+      });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, config.jwt_secret as Secret) as {
+      email: string;
+      type: string;
+    };
+
+    if (decoded.type !== 'password-reset') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid token type',
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, Number(config.bcrypt_salt_rounds));
+
+    // Update user password
+    const updatedUser = await User.findOneAndUpdate(
+      { email: decoded.email },
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully',
+    });
+  } catch (err: any) {
+    res.status(400).json({
+      success: false,
+      message: 'Invalid or expired token',
+      error: err.message,
+    });
+  }
+};
+
 export const userControllers = {
   register,
   login,
@@ -318,4 +435,6 @@ export const userControllers = {
   updateUser,
   deleteUser,
   getUserBookings,
+  forgotPassword,
+  resetPassword,
 };

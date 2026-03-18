@@ -22,7 +22,8 @@
     "imgbb-uploader": "^1.5.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.0",
-    "multer": "^2.1.1"
+    "multer": "^2.1.1",
+    "nodemailer": "^6.9.7"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -32,6 +33,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.1.0",
     "@types/node": "^25.5.0",
+    "@types/nodemailer": "^6.4.14",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

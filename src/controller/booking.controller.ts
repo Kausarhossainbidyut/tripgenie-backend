@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { Booking } from '../models/booking.model';
 import { Item } from '../models/item.model';
+import { User } from '../models/user.model';
+import { sendBookingConfirmationEmail } from '../utils/email.service';
 
 // Create new booking
 const createBooking = async (req: Request, res: Response) => {
@@ -41,6 +43,26 @@ const createBooking = async (req: Request, res: Response) => {
     // Decrease item quantity
     item.quantity -= quantity;
     await item.save();
+
+    // Send booking confirmation email
+    try {
+      const user = await User.findOne({ email: userId });
+      if (user) {
+        await sendBookingConfirmationEmail(
+          user.email,
+          user.name,
+          {
+            itemTitle: item.title,
+            quantity,
+            totalPrice,
+            status: 'pending'
+          }
+        );
+      }
+    } catch (emailErr) {
+      console.error('Failed to send booking confirmation email:', emailErr);
+      // Don't fail booking if email fails
+    }
 
     res.status(201).json({
       success: true,
@@ -182,10 +204,91 @@ const deleteBooking = async (req: Request, res: Response) => {
   }
 };
 
+// Cancel booking
+const cancelBooking = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const userId = req.user?.email;
+    const userRole = req.user?.role;
+
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found',
+      });
+    }
+
+    // Check if user owns this booking or is admin
+    if (userRole !== 'admin' && booking.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. You can only cancel your own bookings.',
+      });
+    }
+
+    // Check if booking is already cancelled
+    if (booking.status === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Booking is already cancelled',
+      });
+    }
+
+    // Get item to restore stock
+    const item = await Item.findById(booking.itemId);
+    if (item) {
+      // Restore item quantity
+      item.quantity += booking.quantity;
+      await item.save();
+    }
+
+    // Calculate refund amount (100% for pending, 80% for confirmed)
+    let refundAmount = 0;
+    if (booking.status === 'pending') {
+      refundAmount = booking.totalPrice; // 100% refund
+    } else if (booking.status === 'confirmed') {
+      refundAmount = Math.round(booking.totalPrice * 0.8); // 80% refund
+    }
+
+    // Update booking status
+    const cancelledBooking = await Booking.findByIdAndUpdate(
+      id,
+      {
+        status: 'cancelled',
+        refundStatus: refundAmount > 0 ? 'pending' : 'none',
+        refundAmount,
+        cancelledAt: new Date(),
+        cancellationReason: reason || 'No reason provided'
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Booking cancelled successfully',
+      data: {
+        booking: cancelledBooking,
+        refundAmount,
+        stockRestored: booking.quantity
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to cancel booking',
+      error: err.message,
+    });
+  }
+};
+
 export const bookingControllers = {
   createBooking,
   getBookings,
   getBookingById,
   updateBooking,
   deleteBooking,
+  cancelBooking,
 };
