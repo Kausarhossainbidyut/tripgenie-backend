@@ -17,8 +17,9 @@ A comprehensive backend API for TripGenie AI Travel Application built with Node.
 - **[Complete API Documentation](API_DOCUMENTATION.md)** - Full API reference with examples
 - **[Authentication Guide](API_DOCUMENTATION.md#authentication-api)** - Login/Register/Refresh token
 - **[Users API](API_DOCUMENTATION.md#users-api)** - User CRUD operations
-- **[Items API](API_DOCUMENTATION.md#items-api)** - Destination/Item CRUD operations
+- **[Items API](API_DOCUMENTATION.md#items-api)** - Destination/Item CRUD with search/filter
 - **[Bookings API](API_DOCUMENTATION.md#bookings-api)** - Booking/Reservation system
+- **[Reviews API](API_DOCUMENTATION.md#reviews-api)** - Item reviews and ratings
 - **[File Upload API](API_DOCUMENTATION.md#file-upload-api)** - Image upload to cloud
 - **[Frontend Integration](API_DOCUMENTATION.md#frontend-integration-guide)** - Code examples for React/Vue/Angular
 
@@ -26,7 +27,11 @@ A comprehensive backend API for TripGenie AI Travel Application built with Node.
 
 - **Authentication System**: JWT-based authentication with access and refresh tokens
 - **User Management**: CRUD operations for users with role-based access control
+- **Items/Destinations**: CRUD with search, filter, sort, and pagination
+- **Bookings**: Reservation system with quantity management
+- **Reviews**: Item reviews and ratings with ownership control
 - **File Upload**: Image upload to imgBB cloud storage with delete functionality
+- **Search & Filter**: Advanced querying for items (search, price range, category, sort)
 - **Security**: Password hashing with bcrypt, protected routes with middleware
 - **TypeScript**: Fully typed codebase for better developer experience
 
@@ -107,8 +112,9 @@ For complete API documentation with detailed examples, see **[API_DOCUMENTATION.
 |----------|-----------|---------------|
 | **Authentication** | Register, Login, Refresh Token | No |
 | **Users** | Get All, Get By ID, Update, Delete | Yes |
-| **Items** | Create, Get All, Get By ID, Update, Delete | Mixed |
+| **Items** | Create, Get All (with search/filter), Get By ID, Update, Delete | Mixed |
 | **Bookings** | Create, Get All, Get By ID, Update, Delete | Yes |
+| **Reviews** | Create, Get By Item, Delete | Mixed |
 | **File Upload** | Single, Multiple, Delete | No |
 
 ### Quick Examples

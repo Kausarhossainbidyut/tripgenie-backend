@@ -8,6 +8,7 @@ Complete API reference for TripGenie Backend.
 - [Users API](#users-api)
 - [Items API](#items-api)
 - [Bookings API](#bookings-api)
+- [Reviews API](#reviews-api)
 - [File Upload API](#file-upload-api)
 - [Frontend Integration Guide](#frontend-integration-guide)
 - [Error Codes](#error-codes)
@@ -326,7 +327,8 @@ Content-Type: application/json
   "price": 5000,
   "rating": 4.5,
   "location": "Cox's Bazar, Bangladesh",
-  "category": "Beach"
+  "category": "Beach",
+  "quantity": 10
 }
 ```
 
@@ -337,6 +339,7 @@ Content-Type: application/json
 - `price` (number) - Price in BDT
 - `location` (string) - Location name
 - `category` (string) - Category (Beach, Mountain, etc.)
+- `quantity` (number) - Available quantity
 
 **Optional Fields:**
 - `rating` (number) - Rating 0-5 (default: 0)
@@ -368,9 +371,31 @@ Content-Type: application/json
 
 ### 2. Get All Items
 
-Retrieve list of all items.
+Retrieve list of all items with search, filter, sort, and pagination.
 
 **Endpoint:** `GET /api/items`
+
+**Query Parameters:**
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| `search` | string | Search in title/description | `?search=beach` |
+| `category` | string | Filter by category | `?category=mountain` |
+| `priceMin` | number | Minimum price | `?priceMin=1000` |
+| `priceMax` | number | Maximum price | `?priceMax=5000` |
+| `sort` | string | Sort field (`-` for descending) | `?sort=-rating` |
+| `page` | number | Page number (default: 1) | `?page=1` |
+| `limit` | number | Items per page (default: 10) | `?limit=10` |
+
+**Examples:**
+```
+GET /api/items?search=beach
+GET /api/items?category=mountain
+GET /api/items?priceMin=1000&priceMax=5000
+GET /api/items?sort=-rating
+GET /api/items?page=1&limit=10
+GET /api/items?search=cox&category=beach&sort=-price&page=1&limit=5
+```
 
 **Response (200 OK):**
 ```json
@@ -387,9 +412,16 @@ Retrieve list of all items.
       "rating": 4.5,
       "location": "Cox's Bazar, Bangladesh",
       "category": "Beach",
+      "quantity": 10,
       "createdBy": "john@example.com"
     }
-  ]
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 50,
+    "totalPages": 5
+  }
 }
 ```
 
@@ -711,6 +743,103 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Access:** Admin only
+
+---
+
+## Reviews API
+
+Manage item reviews and ratings.
+
+### 1. Create Review
+
+Add a review to an item.
+
+**Endpoint:** `POST /api/reviews`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "rating": 5,
+  "comment": "Amazing place! Highly recommended.",
+  "itemId": "69ba8a415ea070bc51060b1d"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Review created successfully",
+  "data": {
+    "_id": "69ba8a415ea070bc51060b1e",
+    "rating": 5,
+    "comment": "Amazing place! Highly recommended.",
+    "userId": "john@example.com",
+    "itemId": "69ba8a415ea070bc51060b1d",
+    "createdAt": "2026-03-18T10:00:00.000Z",
+    "updatedAt": "2026-03-18T10:00:00.000Z"
+  }
+}
+```
+
+**Access:** Any authenticated user
+
+---
+
+### 2. Get Reviews by Item
+
+Get all reviews for a specific item.
+
+**Endpoint:** `GET /api/reviews/item/:itemId`
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Reviews fetched successfully",
+  "data": [
+    {
+      "_id": "69ba8a415ea070bc51060b1e",
+      "rating": 5,
+      "comment": "Amazing place!",
+      "userId": "john@example.com",
+      "itemId": "69ba8a415ea070bc51060b1d",
+      "createdAt": "2026-03-18T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Access:** Public (no authentication required)
+
+---
+
+### 3. Delete Review
+
+Delete a review (owner or admin only).
+
+**Endpoint:** `DELETE /api/reviews/:id`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Review deleted successfully"
+}
+```
+
+**Access:** Review owner or Admin
 
 ---
 
