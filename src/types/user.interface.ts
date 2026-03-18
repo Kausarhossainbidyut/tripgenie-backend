@@ -30,6 +30,7 @@ export interface IItem {
   rating: number;
   location: string;
   category: string;
+  quantity: number;
   createdBy?: string;
   createdAt?: Date;
   updatedAt?: Date;

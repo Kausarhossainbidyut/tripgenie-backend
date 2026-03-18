@@ -19,8 +19,17 @@ const createBooking = async (req: Request, res: Response) => {
       });
     }
 
+    // Check if item has enough quantity available
+    if (item.quantity < quantity) {
+      return res.status(400).json({
+        success: false,
+        message: `Not enough quantity available. Only ${item.quantity} left.`,
+      });
+    }
+
     const totalPrice = item.price * quantity;
 
+    // Create booking
     const newBooking = await Booking.create({
       userId,
       itemId,
@@ -28,6 +37,10 @@ const createBooking = async (req: Request, res: Response) => {
       totalPrice,
       status: 'pending'
     });
+
+    // Decrease item quantity
+    item.quantity -= quantity;
+    await item.save();
 
     res.status(201).json({
       success: true,

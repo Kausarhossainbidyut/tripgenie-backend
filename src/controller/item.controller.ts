@@ -4,7 +4,7 @@ import { Item } from '../models/item.model';
 // Create new item
 const createItem = async (req: Request, res: Response) => {
   try {
-    const { title, description, image, price, rating, location, category } = req.body;
+    const { title, description, image, price, rating, location, category, quantity } = req.body;
     
     // Get user email from token (set by auth middleware)
     const createdBy = req.user?.email;
@@ -17,6 +17,7 @@ const createItem = async (req: Request, res: Response) => {
       rating: rating || 0,
       location,
       category,
+      quantity: quantity || 0,
       createdBy
     });
 
@@ -83,11 +84,11 @@ const getItemById = async (req: Request, res: Response) => {
 const updateItem = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, description, image, price, rating, location, category } = req.body;
+    const { title, description, image, price, rating, location, category, quantity } = req.body;
 
     const updatedItem = await Item.findByIdAndUpdate(
       id,
-      { title, description, image, price, rating, location, category },
+      { title, description, image, price, rating, location, category, quantity },
       { new: true }
     );
 

@@ -10,6 +10,7 @@ const itemSchema = new Schema<IItem>(
     rating: { type: Number, required: true, min: 0, max: 5, default: 0 },
     location: { type: String, required: true },
     category: { type: String, required: true },
+    quantity: { type: Number, required: true, min: 0, default: 0 },
     createdBy: { type: String, ref: 'User' },
   },
   { timestamps: true },
