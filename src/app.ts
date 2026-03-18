@@ -11,6 +11,7 @@ import { BookingRoutes } from './routers/booking.routes';
 import { ReviewRoutes } from './routers/review.routes';
 import { WishlistRoutes } from './routers/wishlist.routes';
 import { AIRoutes } from './routers/ai.routes';
+import { DashboardRoutes } from './routers/dashboard.routes';
 
 const app: Application = express();
 
@@ -30,6 +31,7 @@ app.use('/api/bookings', BookingRoutes);
 app.use('/api/reviews', ReviewRoutes);
 app.use('/api/wishlist', WishlistRoutes);
 app.use('/api/ai', AIRoutes);
+app.use('/api/dashboard', DashboardRoutes);
 
 // Health Check / Root Route
 // ---------------------
