@@ -173,11 +173,19 @@ const getUserById = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, avatar, phone, address } = req.body;
+    const { name, avatar, phone, address, role } = req.body;
+
+    // Build update object with only provided fields
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (avatar !== undefined) updateData.avatar = avatar;
+    if (phone !== undefined) updateData.phone = phone;
+    if (address !== undefined) updateData.address = address;
+    if (role !== undefined) updateData.role = role;
 
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { name, avatar, phone, address },
+      updateData,
       { new: true }
     ).select('-password');
 
