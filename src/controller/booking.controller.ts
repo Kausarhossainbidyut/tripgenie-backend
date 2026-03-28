@@ -9,8 +9,23 @@ const createBooking = async (req: Request, res: Response) => {
   try {
     const { itemId, quantity } = req.body;
     
+    // Validate required fields
+    if (!itemId || quantity === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Item ID and quantity are required',
+      });
+    }
+
     // Get user email from token
     const userId = req.user?.email;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated',
+      });
+    }
 
     // Get item details to calculate total price
     const item = await Item.findById(itemId);
@@ -26,6 +41,14 @@ const createBooking = async (req: Request, res: Response) => {
       return res.status(400).json({
         success: false,
         message: `Not enough quantity available. Only ${item.quantity} left.`,
+      });
+    }
+
+    // Validate quantity is positive
+    if (quantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Quantity must be greater than 0',
       });
     }
 
@@ -70,6 +93,7 @@ const createBooking = async (req: Request, res: Response) => {
       data: newBooking,
     });
   } catch (err: any) {
+    console.error('Error creating booking:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to create booking',
@@ -83,6 +107,13 @@ const getBookings = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.email;
     const userRole = req.user?.role;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated',
+      });
+    }
 
     let bookings;
     if (userRole === 'admin') {
@@ -99,6 +130,7 @@ const getBookings = async (req: Request, res: Response) => {
       data: bookings,
     });
   } catch (err: any) {
+    console.error('Error fetching bookings:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch bookings',
@@ -212,6 +244,13 @@ const cancelBooking = async (req: Request, res: Response) => {
     const userId = req.user?.email;
     const userRole = req.user?.role;
 
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated',
+      });
+    }
+
     const booking = await Booking.findById(id);
 
     if (!booking) {
@@ -237,12 +276,14 @@ const cancelBooking = async (req: Request, res: Response) => {
       });
     }
 
-    // Get item to restore stock
+    // Get item to restore stock (handle case where item may be deleted)
     const item = await Item.findById(booking.itemId);
     if (item) {
       // Restore item quantity
       item.quantity += booking.quantity;
       await item.save();
+    } else {
+      console.warn(`Item ${booking.itemId} not found for stock restoration`);
     }
 
     // Calculate refund amount (100% for pending, 80% for confirmed)
@@ -276,6 +317,7 @@ const cancelBooking = async (req: Request, res: Response) => {
       }
     });
   } catch (err: any) {
+    console.error('Error cancelling booking:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to cancel booking',
