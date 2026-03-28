@@ -117,11 +117,17 @@ const getBookings = async (req: Request, res: Response) => {
 
     let bookings;
     if (userRole === 'admin') {
-      // Admin sees all bookings
-      bookings = await Booking.find().sort({ createdAt: -1 });
+      // Admin sees all bookings with populated user and item details
+      bookings = await Booking.find()
+        .populate('userId', 'name email phone avatar')
+        .populate('itemId', 'title location image price')
+        .sort({ createdAt: -1 });
     } else {
-      // User sees only their bookings
-      bookings = await Booking.find({ userId }).sort({ createdAt: -1 });
+      // User sees only their bookings with populated details
+      bookings = await Booking.find({ userId })
+        .populate('userId', 'name email phone avatar')
+        .populate('itemId', 'title location image price')
+        .sort({ createdAt: -1 });
     }
 
     res.status(200).json({
@@ -146,7 +152,9 @@ const getBookingById = async (req: Request, res: Response) => {
     const userId = req.user?.email;
     const userRole = req.user?.role;
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findById(id)
+      .populate('userId', 'name email phone avatar')
+      .populate('itemId', 'title location image price');
     
     if (!booking) {
       return res.status(404).json({
@@ -326,6 +334,280 @@ const cancelBooking = async (req: Request, res: Response) => {
   }
 };
 
+// Get booking analytics (Admin only)
+const getAnalytics = async (req: Request, res: Response) => {
+  try {
+    // Total revenue
+    const totalRevenueResult = await Booking.aggregate([
+      { $match: { status: 'confirmed' } },
+      { $group: { _id: null, total: { $sum: '$totalPrice' } } }
+    ]);
+    const totalRevenue = totalRevenueResult[0]?.total || 0;
+
+    // Total bookings
+    const totalBookings = await Booking.countDocuments();
+
+    // Average booking value
+    const avgBookingResult = await Booking.aggregate([
+      { $group: { _id: null, avg: { $avg: '$totalPrice' } } }
+    ]);
+    const averageBookingValue = avgBookingResult[0]?.avg || 0;
+
+    // Bookings by status
+    const bookingsByStatus = await Booking.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+
+    // Bookings by payment status
+    const bookingsByPaymentStatus = await Booking.aggregate([
+      { $group: { _id: '$paymentStatus', count: { $sum: 1 } } }
+    ]);
+
+    // Recent bookings
+    const recentBookings = await Booking.find()
+      .populate('userId', 'name email')
+      .populate('itemId', 'title image')
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    // Top destinations
+    const topDestinations = await Booking.aggregate([
+      { $group: { _id: '$itemId', count: { $sum: 1 }, totalRevenue: { $sum: '$totalPrice' } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Enrich top destinations with item details
+    const enrichedTopDestinations = await Promise.all(
+      topDestinations.map(async (dest) => {
+        const item = await Item.findById(dest._id);
+        return {
+          itemId: dest._id,
+          title: item?.title || 'Unknown',
+          count: dest.count,
+          totalRevenue: dest.totalRevenue
+        };
+      })
+    );
+
+    // Monthly trend (last 12 months)
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+    const monthlyTrend = await Booking.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: twelveMonthsAgo }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' }
+          },
+          revenue: { $sum: '$totalPrice' },
+          bookings: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } }
+    ]);
+
+    // Format monthly trend
+    const formattedMonthlyTrend = monthlyTrend.map((item) => ({
+      month: `${item._id.month}/${item._id.year}`,
+      revenue: item.revenue,
+      bookings: item.bookings
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalRevenue,
+        totalBookings,
+        averageBookingValue: Math.round(averageBookingValue),
+        bookingsByStatus,
+        bookingsByPaymentStatus,
+        recentBookings,
+        topDestinations: enrichedTopDestinations,
+        monthlyTrend: formattedMonthlyTrend
+      }
+    });
+  } catch (err: any) {
+    console.error('Error fetching analytics:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch analytics',
+      error: err.message,
+    });
+  }
+};
+
+// Export to CSV (Admin only)
+const exportToCSV = async (req: Request, res: Response) => {
+  try {
+    const { status, paymentStatus, dateFrom, dateTo } = req.query;
+    
+    const filter: any = {};
+    if (status) filter.status = status;
+    if (paymentStatus) filter.paymentStatus = paymentStatus;
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom as string);
+      if (dateTo) filter.createdAt.$lte = new Date(dateTo as string);
+    }
+
+    const bookings = await Booking.find(filter)
+      .populate('userId', 'name email phone')
+      .populate('itemId', 'title location price')
+      .sort({ createdAt: -1 });
+
+    // Create CSV content
+    const csvRows = [];
+    
+    // Header
+    csvRows.push('Booking ID,Customer Name,Customer Email,Destination,Location,Price,Status,Payment Status,Booking Date');
+
+    // Data rows
+    bookings.forEach(booking => {
+      const row = [
+        booking._id,
+        (booking.userId as any)?.name || 'N/A',
+        (booking.userId as any)?.email || 'N/A',
+        (booking.itemId as any)?.title || 'N/A',
+        (booking.itemId as any)?.location || 'N/A',
+        booking.totalPrice,
+        booking.status,
+        booking.paymentStatus,
+        new Date(booking.createdAt).toISOString()
+      ];
+      csvRows.push(row.join(','));
+    });
+
+    const csvContent = csvRows.join('\n');
+
+    // Set headers for file download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=bookings.csv');
+    
+    res.send(csvContent);
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export CSV',
+      error: err.message,
+    });
+  }
+};
+
+// Bulk update status (Admin only)
+const bulkUpdateStatus = async (req: Request, res: Response) => {
+  try {
+    const { bookingIds, status } = req.body;
+
+    if (!Array.isArray(bookingIds) || bookingIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide booking IDs',
+      });
+    }
+
+    if (!status || !['pending', 'confirmed', 'cancelled'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status',
+      });
+    }
+
+    const result = await Booking.updateMany(
+      { _id: { $in: bookingIds } },
+      { status }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully updated ${result.modifiedCount} bookings`,
+      data: { count: result.modifiedCount }
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to bulk update',
+      error: err.message,
+    });
+  }
+};
+
+// Bulk delete bookings (Admin only)
+const bulkDeleteBookings = async (req: Request, res: Response) => {
+  try {
+    const { bookingIds } = req.body;
+
+    if (!Array.isArray(bookingIds) || bookingIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide booking IDs',
+      });
+    }
+
+    const result = await Booking.deleteMany({
+      _id: { $in: bookingIds }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Successfully deleted ${result.deletedCount} bookings`,
+      data: { count: result.deletedCount }
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to bulk delete',
+      error: err.message,
+    });
+  }
+};
+
+// Update payment status (Admin only)
+const updatePaymentStatus = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { paymentStatus } = req.body;
+
+    if (!paymentStatus || !['pending', 'paid', 'failed', 'refunded'].includes(paymentStatus)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment status',
+      });
+    }
+
+    const booking = await Booking.findByIdAndUpdate(
+      id,
+      { paymentStatus },
+      { new: true, runValidators: true }
+    ).populate('userId', 'name email').populate('itemId', 'title');
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment status updated successfully',
+      data: booking,
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update payment status',
+      error: err.message,
+    });
+  }
+};
+
 export const bookingControllers = {
   createBooking,
   getBookings,
@@ -333,4 +615,9 @@ export const bookingControllers = {
   updateBooking,
   deleteBooking,
   cancelBooking,
+  getAnalytics,
+  exportToCSV,
+  bulkUpdateStatus,
+  bulkDeleteBookings,
+  updatePaymentStatus,
 };
