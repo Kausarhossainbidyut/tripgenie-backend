@@ -33,6 +33,7 @@ export interface IItem {
   title: string;
   description: string;
   image: string;
+  gallery?: string[]; // Multiple images array
   price: number;
   rating: number;
   location: string;
