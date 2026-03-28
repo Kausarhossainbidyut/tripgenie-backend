@@ -363,12 +363,22 @@ const getAnalytics = async (req: Request, res: Response) => {
       { $group: { _id: '$paymentStatus', count: { $sum: 1 } } }
     ]);
 
-    // Recent bookings
-    const recentBookings = await Booking.find()
-      .populate('userId', 'name email')
-      .populate('itemId', 'title image')
+    console.log('=== GET ANALYTICS CALLED ===');
+    
+    // Recent bookings - Manual enrichment instead of populate
+    const recentBookingsRaw = await Booking.find()
       .sort({ createdAt: -1 })
       .limit(10);
+    
+    const recentBookings = await Promise.all(recentBookingsRaw.map(async (booking) => {
+      const user = await User.findOne({ email: booking.userId }).select('name email');
+      const item = await Item.findById(booking.itemId).select('title image');
+      return {
+        ...booking.toObject(),
+        userId: user || { name: 'Unknown', email: booking.userId },
+        itemId: item || { title: 'Unknown', image: '' }
+      };
+    }));
 
     // Top destinations
     const topDestinations = await Booking.aggregate([
