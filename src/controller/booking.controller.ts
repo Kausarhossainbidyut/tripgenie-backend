@@ -102,11 +102,12 @@ const createBooking = async (req: Request, res: Response) => {
   }
 };
 
-// Get all bookings (Admin - all, User - own bookings)
+// Get all bookings (Admin - all, User - own bookings) with filters
 const getBookings = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.email;
     const userRole = req.user?.role;
+    const { status } = req.query;
 
     if (!userId) {
       return res.status(401).json({
@@ -115,16 +116,29 @@ const getBookings = async (req: Request, res: Response) => {
       });
     }
 
+    // Build filter
+    const filter: any = {};
+    
+    // Filter by user (unless admin)
+    if (userRole !== 'admin') {
+      filter.userId = userId;
+    }
+    
+    // Filter by status if provided
+    if (status && ['pending', 'confirmed', 'cancelled'].includes(status as string)) {
+      filter.status = status as string;
+    }
+
     let bookings;
     if (userRole === 'admin') {
-      // Admin sees all bookings with populated user and item details
-      bookings = await Booking.find()
+      // Admin sees all bookings (with optional status filter) with populated user and item details
+      bookings = await Booking.find(filter)
         .populate('userId', 'name email phone avatar')
         .populate('itemId', 'title location image price')
         .sort({ createdAt: -1 });
     } else {
-      // User sees only their bookings with populated details
-      bookings = await Booking.find({ userId })
+      // User sees only their bookings (with optional status filter) with populated details
+      bookings = await Booking.find(filter)
         .populate('userId', 'name email phone avatar')
         .populate('itemId', 'title location image price')
         .sort({ createdAt: -1 });
