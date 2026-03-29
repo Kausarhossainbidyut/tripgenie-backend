@@ -57,7 +57,6 @@ const register = async (req: Request, res: Response) => {
     try {
       await sendWelcomeEmail(savedUser.email, savedUser.name);
     } catch (emailErr) {
-      console.error('Failed to send welcome email:', emailErr);
       // Don't fail registration if email fails
     }
 

@@ -67,7 +67,6 @@ const enhancedGetBookings = async (req: Request, res: Response) => {
       },
     });
   } catch (err: any) {
-    console.error('Error fetching bookings:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch bookings',
@@ -94,7 +93,6 @@ const sendConfirmationEmail = async (req: Request, res: Response) => {
     
     if (user) {
       // Note: Email sending skipped - function signature mismatch
-      console.log(`Would send confirmation email to ${user.email} for booking ${id}`);
     }
 
     res.status(200).json({
@@ -102,7 +100,6 @@ const sendConfirmationEmail = async (req: Request, res: Response) => {
       message: 'Confirmation email sent',
     });
   } catch (err: any) {
-    console.error('Error sending email:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to send email',
@@ -163,7 +160,6 @@ const getActivityTimeline = async (req: Request, res: Response) => {
       ),
     });
   } catch (err: any) {
-    console.error('Error fetching timeline:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch timeline',

@@ -83,7 +83,6 @@ const createBooking = async (req: Request, res: Response) => {
         );
       }
     } catch (emailErr) {
-      console.error('Failed to send booking confirmation email:', emailErr);
       // Don't fail booking if email fails
     }
 
@@ -93,7 +92,6 @@ const createBooking = async (req: Request, res: Response) => {
       data: newBooking,
     });
   } catch (err: any) {
-    console.error('Error creating booking:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to create booking',
@@ -170,7 +168,6 @@ const getBookings = async (req: Request, res: Response) => {
       data: bookings,
     });
   } catch (err: any) {
-    console.error('Error fetching bookings:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch bookings',
@@ -333,7 +330,7 @@ const cancelBooking = async (req: Request, res: Response) => {
       item.quantity += booking.quantity;
       await item.save();
     } else {
-      console.warn(`Item ${booking.itemId} not found for stock restoration`);
+      // Item not found for stock restoration is expected
     }
 
     // Calculate refund amount (100% for pending, 80% for confirmed)
@@ -367,7 +364,6 @@ const cancelBooking = async (req: Request, res: Response) => {
       }
     });
   } catch (err: any) {
-    console.error('Error cancelling booking:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to cancel booking',
@@ -405,8 +401,6 @@ const getAnalytics = async (req: Request, res: Response) => {
       { $group: { _id: '$paymentStatus', count: { $sum: 1 } } }
     ]);
 
-    console.log('=== GET ANALYTICS CALLED ===');
-    
     // Recent bookings - Manual enrichment instead of populate
     const recentBookingsRaw = await Booking.find()
       .sort({ createdAt: -1 })
@@ -486,7 +480,6 @@ const getAnalytics = async (req: Request, res: Response) => {
       }
     });
   } catch (err: any) {
-    console.error('Error fetching analytics:', err);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch analytics',
