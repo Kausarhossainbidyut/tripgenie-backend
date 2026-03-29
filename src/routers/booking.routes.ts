@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { bookingControllers } from '../controller/booking.controller';
+import { enhancedBookingControllers } from '../controller/booking.enhanced.controller';
 import { verifyToken, isAdmin } from '../middlewares/auth';
 
 const router = Router();
@@ -25,12 +26,6 @@ router.post('/bulk/delete', verifyToken, isAdmin, bookingControllers.bulkDeleteB
 // Get booking by ID (protected)
 router.get('/:id', verifyToken, bookingControllers.getBookingById);
 
-// Get activity timeline (protected - admin only)
-router.get('/:id/activity', verifyToken, isAdmin, bookingControllers.getActivityTimeline);
-
-// Send confirmation email (protected - admin only)
-router.post('/:id/email/confirmation', verifyToken, isAdmin, bookingControllers.sendConfirmationEmail);
-
 // Update booking status (protected - admin only)
 router.patch('/:id', verifyToken, isAdmin, bookingControllers.updateBooking);
 
@@ -42,5 +37,9 @@ router.patch('/:id/cancel', verifyToken, bookingControllers.cancelBooking);
 
 // Delete booking (protected - admin only)
 router.delete('/:id', verifyToken, isAdmin, bookingControllers.deleteBooking);
+
+// Enhanced booking endpoints
+router.get('/:id/activity', verifyToken, enhancedBookingControllers.getActivityTimeline);
+router.post('/:id/email/confirmation', verifyToken, enhancedBookingControllers.sendConfirmationEmail);
 
 export const BookingRoutes = router;

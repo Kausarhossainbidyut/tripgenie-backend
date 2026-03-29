@@ -133,15 +133,35 @@ const getBookings = async (req: Request, res: Response) => {
     if (userRole === 'admin') {
       // Admin sees all bookings (with optional status filter) with populated user and item details
       bookings = await Booking.find(filter)
-        .populate('userId', 'name email phone avatar')
-        .populate('itemId', 'title location image price')
         .sort({ createdAt: -1 });
+      
+      // Manual population for userId (since it's stored as email string, not ObjectId)
+      const enrichedBookings = await Promise.all(bookings.map(async (booking) => {
+        const user = await User.findOne({ email: booking.userId }).select('name email phone avatar');
+        const item = await Item.findById(booking.itemId).select('title location image price');
+        return {
+          ...booking.toObject(),
+          userId: user || { name: 'Unknown User', email: booking.userId },
+          itemId: item || { title: 'Unknown Destination', location: 'N/A' }
+        };
+      }));
+      bookings = enrichedBookings;
     } else {
       // User sees only their bookings (with optional status filter) with populated details
       bookings = await Booking.find(filter)
-        .populate('userId', 'name email phone avatar')
-        .populate('itemId', 'title location image price')
         .sort({ createdAt: -1 });
+      
+      // Manual population for userId and itemId
+      const enrichedBookings = await Promise.all(bookings.map(async (booking) => {
+        const user = await User.findOne({ email: booking.userId }).select('name email phone avatar');
+        const item = await Item.findById(booking.itemId).select('title location image price');
+        return {
+          ...booking.toObject(),
+          userId: user || { name: 'Unknown User', email: booking.userId },
+          itemId: item || { title: 'Unknown Destination', location: 'N/A' }
+        };
+      }));
+      bookings = enrichedBookings;
     }
 
     res.status(200).json({
@@ -166,9 +186,7 @@ const getBookingById = async (req: Request, res: Response) => {
     const userId = req.user?.email;
     const userRole = req.user?.role;
 
-    const booking = await Booking.findById(id)
-      .populate('userId', 'name email phone avatar')
-      .populate('itemId', 'title location image price');
+    const booking = await Booking.findById(id);
     
     if (!booking) {
       return res.status(404).json({
@@ -176,6 +194,16 @@ const getBookingById = async (req: Request, res: Response) => {
         message: 'Booking not found',
       });
     }
+
+    // Manual population for userId (since it's stored as email string, not ObjectId)
+    const user = await User.findOne({ email: booking.userId }).select('name email phone avatar');
+    const item = await Item.findById(booking.itemId).select('title location image price');
+    
+    const enrichedBooking = {
+      ...booking.toObject(),
+      userId: user || { name: 'Unknown User', email: booking.userId },
+      itemId: item || { title: 'Unknown Destination', location: 'N/A' }
+    };
 
     // Check if user owns this booking or is admin
     if (userRole !== 'admin' && booking.userId !== userId) {
@@ -188,7 +216,7 @@ const getBookingById = async (req: Request, res: Response) => {
     res.status(200).json({
       success: true,
       message: 'Booking fetched successfully',
-      data: booking,
+      data: enrichedBooking,
     });
   } catch (err: any) {
     res.status(500).json({
@@ -482,9 +510,18 @@ const exportToCSV = async (req: Request, res: Response) => {
     }
 
     const bookings = await Booking.find(filter)
-      .populate('userId', 'name email phone')
-      .populate('itemId', 'title location price')
       .sort({ createdAt: -1 });
+
+    // Manual population for CSV export
+    const enrichedBookings = await Promise.all(bookings.map(async (booking) => {
+      const user = await User.findOne({ email: booking.userId }).select('name email phone');
+      const item = await Item.findById(booking.itemId).select('title location price');
+      return {
+        ...booking.toObject(),
+        userId: user || { name: 'N/A', email: booking.userId },
+        itemId: item || { title: 'N/A', location: 'N/A' }
+      };
+    }));
 
     // Create CSV content
     const csvRows = [];
@@ -493,7 +530,7 @@ const exportToCSV = async (req: Request, res: Response) => {
     csvRows.push('Booking ID,Customer Name,Customer Email,Destination,Location,Price,Status,Payment Status,Booking Date');
 
     // Data rows
-    bookings.forEach(booking => {
+    enrichedBookings.forEach(booking => {
       const row = [
         booking._id,
         (booking.userId as any)?.name || 'N/A',
@@ -503,7 +540,7 @@ const exportToCSV = async (req: Request, res: Response) => {
         booking.totalPrice,
         booking.status,
         booking.paymentStatus,
-        new Date(booking.createdAt).toISOString()
+        booking.createdAt!.toISOString()
       ];
       csvRows.push(row.join(','));
     });
@@ -609,7 +646,7 @@ const updatePaymentStatus = async (req: Request, res: Response) => {
       id,
       { paymentStatus },
       { new: true, runValidators: true }
-    ).populate('userId', 'name email').populate('itemId', 'title');
+    );
 
     if (!booking) {
       return res.status(404).json({
@@ -618,10 +655,20 @@ const updatePaymentStatus = async (req: Request, res: Response) => {
       });
     }
 
+    // Manual population for userId and itemId
+    const user = await User.findOne({ email: booking.userId }).select('name email');
+    const item = await Item.findById(booking.itemId).select('title');
+    
+    const enrichedBooking = {
+      ...booking.toObject(),
+      userId: user || { name: 'Unknown User', email: booking.userId },
+      itemId: item || { title: 'Unknown Destination' }
+    };
+
     res.status(200).json({
       success: true,
       message: 'Payment status updated successfully',
-      data: booking,
+      data: enrichedBooking,
     });
   } catch (err: any) {
     res.status(500).json({
