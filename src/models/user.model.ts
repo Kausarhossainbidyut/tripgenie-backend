@@ -8,6 +8,13 @@ const userSchema = new Schema<IUser>(
     password: { type: String, required: true, select: false },
     role: { type: String, enum: ["admin", "user"], default: "user" },
     avatar: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    address: {
+      street: { type: String, default: "" },
+      city: { type: String, default: "" },
+      country: { type: String, default: "" },
+      zipCode: { type: String, default: "" },
+    },
   },
   { timestamps: true },
 );

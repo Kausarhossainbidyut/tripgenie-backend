@@ -12,6 +12,7 @@ Complete API reference for TripGenie Backend.
 - [Wishlist API](#wishlist-api)
 - [AI Features API](#ai-features-api)
 - [Dashboard API](#dashboard-api)
+- [Payment API](#payment-api)
 - [File Upload API](#file-upload-api)
 - [Frontend Integration Guide](#frontend-integration-guide)
 - [Error Codes](#error-codes)
@@ -159,6 +160,69 @@ Get new access token when current one expires.
 
 ---
 
+### 4. Forgot Password
+
+Request a password reset email.
+
+**Endpoint:** `POST /api/auth/forgot-password`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "If an account exists, a password reset email has been sent."
+}
+```
+
+**Note:** For security, this endpoint returns the same message whether the email exists or not.
+
+---
+
+### 5. Reset Password
+
+Reset password using the token from the email.
+
+**Endpoint:** `POST /api/auth/reset-password`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "newPassword": "newpassword123"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Password reset successfully"
+}
+```
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "success": false,
+  "message": "Invalid or expired token"
+}
+```
+
+**Note:** Reset token is valid for 1 hour.
+
+---
+
 ## Users API
 
 All user routes require authentication. Include the access token in the Authorization header:
@@ -262,6 +326,27 @@ Content-Type: application/json
 **Updatable Fields:**
 - `name` (string) - User's full name
 - `avatar` (string) - URL to profile image
+- `phone` (string) - Phone number
+- `address` (object) - Address details
+  - `street` (string)
+  - `city` (string)
+  - `country` (string)
+  - `zipCode` (string)
+
+**Request Body Example:**
+```json
+{
+  "name": "John Doe",
+  "avatar": "https://i.ibb.co/.../image.jpg",
+  "phone": "+8801234567890",
+  "address": {
+    "street": "123 Main St",
+    "city": "Dhaka",
+    "country": "Bangladesh",
+    "zipCode": "1200"
+  }
+}
+```
 
 **Response (200 OK):**
 ```json
@@ -302,6 +387,50 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 **Access:** Admin only
+
+---
+
+### 5. Get User Bookings
+
+Get all bookings for a specific user with item details.
+
+**Endpoint:** `GET /api/users/:id/bookings`
+
+**Example:** `GET /api/users/69ba8a415ea070bc51060b1d/bookings`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "User bookings fetched successfully",
+  "data": [
+    {
+      "_id": "69ba8a415ea070bc51060b1e",
+      "userId": "john@example.com",
+      "itemId": {
+        "_id": "69ba8a415ea070bc51060b1d",
+        "title": "Cox's Bazar Beach",
+        "description": "World's longest sea beach",
+        "image": "https://i.ibb.co/.../image.jpg",
+        "price": 5000,
+        "location": "Cox's Bazar",
+        "category": "beach"
+      },
+      "quantity": 2,
+      "totalPrice": 10000,
+      "status": "confirmed",
+      "createdAt": "2024-01-15T10:30:00.000Z"
+    }
+  ]
+}
+```
+
+**Access:** User (own bookings only) or Admin
 
 ---
 
@@ -749,6 +878,62 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 
 ---
 
+### 6. Cancel Booking
+
+Cancel a booking with automatic stock restore and refund calculation.
+
+**Endpoint:** `PATCH /api/bookings/:id/cancel`
+
+**Example:** `PATCH /api/bookings/69ba8a415ea070bc51060b2e/cancel`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "reason": "Change of plans"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Booking cancelled successfully",
+  "data": {
+    "booking": {
+      "_id": "69ba8a415ea070bc51060b2e",
+      "userId": "john@example.com",
+      "itemId": "69ba8a415ea070bc51060b1d",
+      "quantity": 2,
+      "totalPrice": 10000,
+      "status": "cancelled",
+      "refundStatus": "pending",
+      "refundAmount": 10000,
+      "cancelledAt": "2024-01-20T10:30:00.000Z",
+      "cancellationReason": "Change of plans"
+    },
+    "refundAmount": 10000,
+    "stockRestored": 2
+  }
+}
+```
+
+**Refund Policy:**
+- **Pending bookings:** 100% refund
+- **Confirmed bookings:** 80% refund (20% cancellation fee)
+- **Already cancelled:** Cannot cancel again
+
+**Stock Restore:** Item quantity is automatically restored when booking is cancelled.
+
+**Access:** User (own bookings) or Admin
+
+---
+
 ## Reviews API
 
 Manage item reviews and ratings.
@@ -1118,6 +1303,158 @@ Summarize all reviews for a specific item/destination.
 ```
 
 **Access:** Public (no authentication required)
+
+---
+
+## Payment API
+
+Stripe payment integration for processing bookings.
+
+### 1. Create Payment Intent
+
+Create a Stripe payment intent for a booking.
+
+**Endpoint:** `POST /api/payments/create-intent`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "bookingId": "69ba8a415ea070bc51060b2e"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Payment intent created successfully",
+  "data": {
+    "clientSecret": "pi_3O...secret",
+    "paymentIntentId": "pi_3O...",
+    "amount": 10000,
+    "currency": "usd"
+  }
+}
+```
+
+**Access:** Authenticated users (own bookings only)
+
+---
+
+### 2. Confirm Payment
+
+Confirm payment after successful Stripe payment.
+
+**Endpoint:** `POST /api/payments/confirm`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "paymentIntentId": "pi_3O..."
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Payment confirmed successfully",
+  "data": {
+    "booking": {
+      "_id": "69ba8a415ea070bc51060b2e",
+      "status": "confirmed",
+      "paymentStatus": "paid"
+    },
+    "paymentStatus": "succeeded"
+  }
+}
+```
+
+**Access:** Authenticated users
+
+---
+
+### 3. Get Payment Status
+
+Check payment status for a booking.
+
+**Endpoint:** `GET /api/payments/status/:bookingId`
+
+**Example:** `GET /api/payments/status/69ba8a415ea070bc51060b2e`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Payment status retrieved",
+  "data": {
+    "bookingId": "69ba8a415ea070bc51060b2e",
+    "paymentStatus": "paid",
+    "paymentIntentId": "pi_3O...",
+    "totalPrice": 10000
+  }
+}
+```
+
+**Access:** User (own bookings) or Admin
+
+---
+
+### 4. Process Refund
+
+Process a refund for a paid booking (Admin only).
+
+**Endpoint:** `POST /api/payments/refund`
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "bookingId": "69ba8a415ea070bc51060b2e"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Refund processed successfully",
+  "data": {
+    "booking": {
+      "_id": "69ba8a415ea070bc51060b2e",
+      "paymentStatus": "refunded",
+      "refundStatus": "completed"
+    },
+    "refundId": "re_3O...",
+    "refundAmount": 10000,
+    "status": "succeeded"
+  }
+}
+```
+
+**Access:** Admin only
 
 ---
 

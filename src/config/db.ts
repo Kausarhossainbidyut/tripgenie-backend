@@ -13,6 +13,12 @@ const config = {
   openrouter_api_key: process.env.OPENROUTER_API_KEY || '',
   client_url: process.env.CLIENT_URL || 'http://localhost:3000',
   imgbb_api_key: process.env.IMGBB_API_KEY || '',
+  email_host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  email_port: process.env.EMAIL_PORT || 587,
+  email_user: process.env.EMAIL_USER || '',
+  email_pass: process.env.EMAIL_PASS || '',
+  stripe_secret_key: process.env.STRIPE_SECRET_KEY || '',
+  stripe_publishable_key: process.env.STRIPE_PUBLISHABLE_KEY || '',
 };
 
 export default config;

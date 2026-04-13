@@ -12,11 +12,17 @@ import { ReviewRoutes } from './routers/review.routes';
 import { WishlistRoutes } from './routers/wishlist.routes';
 import { AIRoutes } from './routers/ai.routes';
 import { DashboardRoutes } from './routers/dashboard.routes';
+import { PaymentRoutes } from './routers/payment.routes';
 
 const app: Application = express();
 
 // Middleware
-app.use(cors());            
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());    
 
 
@@ -32,6 +38,7 @@ app.use('/api/reviews', ReviewRoutes);
 app.use('/api/wishlist', WishlistRoutes);
 app.use('/api/ai', AIRoutes);
 app.use('/api/dashboard', DashboardRoutes);
+app.use('/api/payments', PaymentRoutes);
 
 // Health Check / Root Route
 // ---------------------

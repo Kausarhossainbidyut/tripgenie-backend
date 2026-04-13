@@ -2,6 +2,28 @@ import { Request, Response } from 'express';
 import { Review } from '../models/review.model';
 import { Item } from '../models/item.model';
 
+// Helper function to update item rating
+const updateItemRating = async (itemId: string) => {
+  const reviews = await Review.find({ itemId });
+  
+  if (reviews.length === 0) {
+    // No reviews, set rating to 0
+    await Item.findByIdAndUpdate(itemId, { rating: 0 });
+    return 0;
+  }
+  
+  // Calculate average rating
+  const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
+  const averageRating = totalRating / reviews.length;
+  
+  // Update item with new rating (rounded to 1 decimal)
+  await Item.findByIdAndUpdate(itemId, { 
+    rating: Math.round(averageRating * 10) / 10 
+  });
+  
+  return averageRating;
+};
+
 // Create new review
 const createReview = async (req: Request, res: Response) => {
   try {
@@ -26,10 +48,16 @@ const createReview = async (req: Request, res: Response) => {
       itemId
     });
 
+    // Update item rating
+    const newAverageRating = await updateItemRating(itemId);
+
     res.status(201).json({
       success: true,
       message: 'Review created successfully',
-      data: newReview,
+      data: {
+        review: newReview,
+        itemRating: newAverageRating
+      }
     });
   } catch (err: any) {
     res.status(500).json({
@@ -94,11 +122,20 @@ const deleteReview = async (req: Request, res: Response) => {
       });
     }
 
+    // Get itemId before deleting
+    const itemId = review.itemId;
+    
     await Review.findByIdAndDelete(id);
+
+    // Update item rating after deletion
+    const newAverageRating = await updateItemRating(itemId);
 
     res.status(200).json({
       success: true,
       message: 'Review deleted successfully',
+      data: {
+        itemRating: newAverageRating
+      }
     });
   } catch (err: any) {
     res.status(500).json({

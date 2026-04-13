@@ -12,4 +12,10 @@ router.post('/login', userControllers.login);
 // Refresh token
 router.post('/refresh-token', userControllers.refreshToken);
 
+// Forgot password
+router.post('/forgot-password', userControllers.forgotPassword);
+
+// Reset password
+router.post('/reset-password', userControllers.resetPassword);
+
 export const AuthRoutes = router;

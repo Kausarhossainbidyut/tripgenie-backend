@@ -9,13 +9,11 @@ async function main() {
     }
 
     await mongoose.connect(config.database_url);
-    console.log('Connected to MongoDB successfully');
 
     app.listen(config.port, () => {
-      console.log(`Server is listening on port ${config.port}`);
+      // Server started successfully
     });
   } catch (err) {
-    console.error('Failed to connect to MongoDB', err);
     process.exit(1);
   }
 }

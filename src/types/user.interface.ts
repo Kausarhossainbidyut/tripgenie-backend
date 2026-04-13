@@ -5,6 +5,13 @@ export interface IUser {
   password?: string;
   role: 'admin' | 'user';
   avatar?: string;
+  phone?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    country?: string;
+    zipCode?: string;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -26,6 +33,7 @@ export interface IItem {
   title: string;
   description: string;
   image: string;
+  gallery?: string[]; // Multiple images array
   price: number;
   rating: number;
   location: string;
@@ -43,6 +51,12 @@ export interface IBooking {
   quantity: number;
   totalPrice: number;
   status: 'pending' | 'confirmed' | 'cancelled';
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentIntentId?: string;
+  refundStatus?: 'none' | 'pending' | 'completed';
+  refundAmount?: number;
+  cancelledAt?: Date;
+  cancellationReason?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
