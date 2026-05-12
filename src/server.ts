@@ -1,10 +1,8 @@
 import mongoose from 'mongoose';
-import dns from "node:dns";
-import app from './app';
 import config from './config/db'; // use db.ts
+import app from './app';
 
 
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
 async function main() {
   try {
     if (!config.database_url) {
@@ -14,9 +12,11 @@ async function main() {
     await mongoose.connect(config.database_url);
 
     app.listen(config.port, () => {
-      // Server started successfully
+      console.log(`Server running on port ${config.port}`);
+      
     });
   } catch (err) {
+    console.error('Server failed to start:', err);
     process.exit(1);
   }
 }

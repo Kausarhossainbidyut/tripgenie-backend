@@ -13,8 +13,6 @@ import { WishlistRoutes } from './routers/wishlist.routes';
 import { AIRoutes } from './routers/ai.routes';
 import { DashboardRoutes } from './routers/dashboard.routes';
 import { PaymentRoutes } from './routers/payment.routes';
-import dns from "node:dns";
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
 const app: Application = express();
 
 // Middleware
