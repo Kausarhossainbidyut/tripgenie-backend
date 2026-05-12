@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
+import dns from "node:dns";
 import path from 'path';
 
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 dotenv.config({ path: path.join(process.cwd(), '.env') });
 
 const config = {
