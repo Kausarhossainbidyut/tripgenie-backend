@@ -5,7 +5,7 @@ dotenv.config({ path: path.join(process.cwd(), '.env') });
 
 const config = {
   port: process.env.PORT || 5000,
-  database_url: process.env.MONGO_CONNECTION_STRING || 'mongodb://127.0.0.1:27017/tripgenie',
+  database_url: process.env.MONGO_CONNECTION_STRING,
   bcrypt_salt_rounds: Number(process.env.BCRYPT_SALT_ROUNDS) || 12,
   jwt_secret: process.env.JWT_SECRET || 'default_jwt_secret',
   jwt_expires_in: process.env.JWT_EXPIRES_IN || '7d',

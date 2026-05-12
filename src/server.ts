@@ -1,7 +1,10 @@
 import mongoose from 'mongoose';
+import dns from "node:dns";
 import app from './app';
 import config from './config/db'; // use db.ts
 
+
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 async function main() {
   try {
     if (!config.database_url) {
