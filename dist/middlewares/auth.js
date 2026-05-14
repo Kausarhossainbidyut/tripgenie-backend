@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.isAdmin = exports.verifyToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = __importDefault(require("../config/db"));
+
 // Verify JWT token middleware
 const verifyToken = (req, res, next) => {
     try {
@@ -18,6 +19,13 @@ const verifyToken = (req, res, next) => {
         }
         const token = authHeader.split(' ')[1];
         const decoded = jsonwebtoken_1.default.verify(token, db_1.default.jwt_secret);
+        // Reject refresh tokens being used as access tokens
+        if (decoded.type === 'refresh') {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid token type. Use access token.'
+            });
+        }
         req.user = decoded;
         next();
     }
@@ -29,6 +37,7 @@ const verifyToken = (req, res, next) => {
     }
 };
 exports.verifyToken = verifyToken;
+
 // Check if user is admin
 const isAdmin = (req, res, next) => {
     var _a;
