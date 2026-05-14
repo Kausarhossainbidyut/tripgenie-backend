@@ -19,7 +19,7 @@ const booking_model_1 = require("../models/booking.model");
 const item_model_1 = require("../models/item.model");
 // Initialize Stripe
 const stripe = new stripe_1.default(db_1.default.stripe_secret_key || '', {
-    apiVersion: '2023-10-16',
+    apiVersion: '2026-04-22.dahlia',
 });
 // Create payment intent
 const createPaymentIntent = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
