@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.summarizeReviews = exports.getRecommendations = exports.generateDescription = exports.chatWithAI = void 0;
 const axios_1 = __importDefault(require("axios"));
 const db_1 = __importDefault(require("../config/db"));
-
 // Lazy client — created on first use so env vars are fully loaded
 const getOpenRouterClient = () => {
     return axios_1.default.create({
@@ -28,11 +27,16 @@ const getOpenRouterClient = () => {
         },
     });
 };
-
 const chatWithAI = (message) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const prompt = `You are TripGenie, an AI travel assistant for Bangladesh tourism.\nUser: ${message}\nTripGenie:`;
+        const prompt = `You are TripGenie, an AI travel assistant for Bangladesh tourism. 
+    Help users with travel-related questions, suggestions, and recommendations.
+    Be friendly, informative, and focus on Bangladesh destinations.
+    
+    User: ${message}
+    
+    TripGenie:`;
         const response = yield getOpenRouterClient().post('/chat/completions', {
             model: 'gpt-3.5-turbo',
             messages: [{ role: 'user', content: prompt }],
@@ -45,11 +49,12 @@ const chatWithAI = (message) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.chatWithAI = chatWithAI;
-
 const generateDescription = (title) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const prompt = `Write an attractive travel description for "${title}" in Bangladesh under 150 words.`;
+        const prompt = `Write an attractive travel description for "${title}" in Bangladesh. 
+    Include: what makes it special, best time to visit, and key attractions.
+    Keep it under 150 words and engaging for tourists.`;
         const response = yield getOpenRouterClient().post('/chat/completions', {
             model: 'gpt-3.5-turbo',
             messages: [{ role: 'user', content: prompt }],
@@ -62,11 +67,15 @@ const generateDescription = (title) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.generateDescription = generateDescription;
-
 const getRecommendations = (budget, location, preferences) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const prompt = `Suggest 3-5 travel destinations in Bangladesh for budget: ${budget} BDT, location: ${location}, preferences: ${preferences}.`;
+        const prompt = `Suggest 3-5 travel destinations in Bangladesh based on:
+    - Budget: ${budget} BDT
+    - Preferred location type: ${location}
+    - User preferences: ${preferences}
+    
+    For each destination, provide: name, brief description, estimated cost, and why it matches.`;
         const response = yield getOpenRouterClient().post('/chat/completions', {
             model: 'gpt-3.5-turbo',
             messages: [{ role: 'user', content: prompt }],
@@ -79,12 +88,17 @@ const getRecommendations = (budget, location, preferences) => __awaiter(void 0, 
     }
 });
 exports.getRecommendations = getRecommendations;
-
 const summarizeReviews = (reviews) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
         const reviewsText = reviews.join('\n---\n');
-        const prompt = `Summarize these reviews in max 100 words:\n${reviewsText}`;
+        const prompt = `Summarize these customer reviews into a concise paragraph (max 100 words).
+    Highlight: overall sentiment, common praises, and any complaints.
+    
+    Reviews:
+    ${reviewsText}
+    
+    Summary:`;
         const response = yield getOpenRouterClient().post('/chat/completions', {
             model: 'gpt-3.5-turbo',
             messages: [{ role: 'user', content: prompt }],
