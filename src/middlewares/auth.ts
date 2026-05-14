@@ -28,9 +28,21 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
 
     const token = authHeader.split(' ')[1];
     
-    const decoded = jwt.verify(token, config.jwt_secret as Secret) as { email: string; role: string };
+    const decoded = jwt.verify(token, config.jwt_secret as Secret) as { 
+      email: string; 
+      role: string;
+      type?: string;
+    };
+
+    // Reject refresh tokens being used as access tokens
+    if (decoded.type === 'refresh') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token type. Use access token.'
+      });
+    }
+
     req.user = decoded;
-    
     next();
   } catch (error) {
     return res.status(401).json({

@@ -149,10 +149,22 @@ const updateItem = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { title, description, image, gallery, price, rating, location, category, quantity } = req.body;
 
+    // Only update fields that were actually provided
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (image !== undefined) updateData.image = image;
+    if (gallery !== undefined) updateData.gallery = gallery;
+    if (price !== undefined) updateData.price = price;
+    if (rating !== undefined) updateData.rating = rating;
+    if (location !== undefined) updateData.location = location;
+    if (category !== undefined) updateData.category = category;
+    if (quantity !== undefined) updateData.quantity = quantity;
+
     const updatedItem = await Item.findByIdAndUpdate(
       id,
-      { title, description, image, gallery, price, rating, location, category, quantity },
-      { new: true }
+      updateData,
+      { new: true, runValidators: true }
     );
 
     if (!updatedItem) {

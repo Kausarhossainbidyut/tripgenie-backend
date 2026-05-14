@@ -4,10 +4,20 @@ import config from '../config/db';
 import { Booking } from '../models/booking.model';
 import { Item } from '../models/item.model';
 
-// Initialize Stripe
-const stripe = new Stripe(config.stripe_secret_key || '', {
-  apiVersion: '2026-04-22.dahlia',
-});
+// Lazy Stripe instance — created on first use so env vars are fully loaded
+// Top-level new Stripe() crashes the entire serverless function if key is missing
+let _stripe: Stripe | null = null;
+const getStripe = (): Stripe => {
+  if (!_stripe) {
+    if (!config.stripe_secret_key) {
+      throw new Error('STRIPE_SECRET_KEY is not set in environment variables');
+    }
+    _stripe = new Stripe(config.stripe_secret_key, {
+      apiVersion: '2026-04-22.dahlia',
+    });
+  }
+  return _stripe;
+};
 
 // Create payment intent
 const createPaymentIntent = async (req: Request, res: Response) => {
@@ -57,7 +67,7 @@ const createPaymentIntent = async (req: Request, res: Response) => {
     }
 
     // Create payment intent with Stripe
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount: booking.totalPrice * 100, // Convert to cents
       currency: 'usd',
       automatic_payment_methods: {
@@ -107,7 +117,7 @@ const confirmPayment = async (req: Request, res: Response) => {
     }
 
     // Retrieve payment intent from Stripe
-    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent = await getStripe().paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status === 'succeeded') {
       // Update booking status
@@ -217,7 +227,7 @@ const processRefund = async (req: Request, res: Response) => {
     }
 
     // Process refund with Stripe
-    const refund = await stripe.refunds.create({
+    const refund = await getStripe().refunds.create({
       payment_intent: booking.paymentIntentId,
       amount: booking.refundAmount ? booking.refundAmount * 100 : undefined, // Full refund if not specified
     });

@@ -1,18 +1,19 @@
 import axios from 'axios';
 import config from '../config/db';
 
-// OpenRouter API client
-const openRouterClient = axios.create({
-  baseURL: 'https://openrouter.ai/api/v1',
-  headers: {
-    'Authorization': `Bearer ${config.openrouter_api_key || ''}`,
-    'Content-Type': 'application/json',
-    'HTTP-Referer': 'http://localhost:5000',
-    'X-Title': 'TripGenie AI'
-  }
-});
+// Lazy client — created on first use so env vars are fully loaded
+const getOpenRouterClient = () => {
+  return axios.create({
+    baseURL: 'https://openrouter.ai/api/v1',
+    headers: {
+      'Authorization': `Bearer ${config.openrouter_api_key || ''}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': config.client_url || 'https://tripgenie.vercel.app',
+      'X-Title': 'TripGenie AI',
+    },
+  });
+};
 
-// AI Chatbot - General travel assistant
 export const chatWithAI = async (message: string): Promise<string> => {
   try {
     const prompt = `You are TripGenie, an AI travel assistant for Bangladesh tourism. 
@@ -22,12 +23,10 @@ export const chatWithAI = async (message: string): Promise<string> => {
     User: ${message}
     
     TripGenie:`;
-    
-    const response = await openRouterClient.post('/chat/completions', {
+    const response = await getOpenRouterClient().post('/chat/completions', {
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: prompt }],
     });
-    
     return response.data.choices[0]?.message?.content || 'No response from AI';
   } catch (error: any) {
     console.error('OpenRouter API Error:', error.message);
@@ -35,18 +34,15 @@ export const chatWithAI = async (message: string): Promise<string> => {
   }
 };
 
-// Generate description for destination/item
 export const generateDescription = async (title: string): Promise<string> => {
   try {
     const prompt = `Write an attractive travel description for "${title}" in Bangladesh. 
     Include: what makes it special, best time to visit, and key attractions.
     Keep it under 150 words and engaging for tourists.`;
-    
-    const response = await openRouterClient.post('/chat/completions', {
+    const response = await getOpenRouterClient().post('/chat/completions', {
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: prompt }],
     });
-    
     return response.data.choices[0]?.message?.content || 'No description generated';
   } catch (error: any) {
     console.error('OpenRouter API Error:', error.message);
@@ -54,7 +50,6 @@ export const generateDescription = async (title: string): Promise<string> => {
   }
 };
 
-// Get AI recommendations based on preferences
 export const getRecommendations = async (
   budget: number,
   location: string,
@@ -67,12 +62,10 @@ export const getRecommendations = async (
     - User preferences: ${preferences}
     
     For each destination, provide: name, brief description, estimated cost, and why it matches.`;
-    
-    const response = await openRouterClient.post('/chat/completions', {
+    const response = await getOpenRouterClient().post('/chat/completions', {
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: prompt }],
     });
-    
     return response.data.choices[0]?.message?.content || 'No recommendations generated';
   } catch (error: any) {
     console.error('OpenRouter API Error:', error.message);
@@ -80,7 +73,6 @@ export const getRecommendations = async (
   }
 };
 
-// Summarize reviews
 export const summarizeReviews = async (reviews: string[]): Promise<string> => {
   try {
     const reviewsText = reviews.join('\n---\n');
@@ -91,12 +83,10 @@ export const summarizeReviews = async (reviews: string[]): Promise<string> => {
     ${reviewsText}
     
     Summary:`;
-    
-    const response = await openRouterClient.post('/chat/completions', {
+    const response = await getOpenRouterClient().post('/chat/completions', {
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: prompt }],
     });
-    
     return response.data.choices[0]?.message?.content || 'No summary generated';
   } catch (error: any) {
     console.error('OpenRouter API Error:', error.message);
