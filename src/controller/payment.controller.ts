@@ -6,7 +6,7 @@ import { Item } from '../models/item.model';
 
 // Initialize Stripe
 const stripe = new Stripe(config.stripe_secret_key || '', {
-  apiVersion: '2023-10-16',
+  apiVersion: '2026-04-22.dahlia',
 });
 
 // Create payment intent
