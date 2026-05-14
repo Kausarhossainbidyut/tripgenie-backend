@@ -4,10 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
-const node_dns_1 = __importDefault(require("node:dns"));
-const path_1 = __importDefault(require("path"));
-node_dns_1.default.setServers(["8.8.8.8", "1.1.1.1"]);
-dotenv_1.default.config({ path: path_1.default.join(process.cwd(), '.env') });
+
+// Only load .env file in local development — Vercel injects env vars natively
+if (process.env.NODE_ENV !== 'production') {
+    dotenv_1.default.config();
+}
+
 const config = {
     port: process.env.PORT || 5000,
     database_url: process.env.MONGO_CONNECTION_STRING,

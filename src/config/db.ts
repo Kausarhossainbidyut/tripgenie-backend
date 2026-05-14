@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
-import dns from "node:dns";
-import path from 'path';
 
-dns.setServers(["8.8.8.8", "1.1.1.1"]);
-dotenv.config({ path: path.join(process.cwd(), '.env') });
+// Only load .env file in local development — Vercel injects env vars natively
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 const config = {
   port: process.env.PORT || 5000,

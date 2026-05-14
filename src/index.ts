@@ -1,27 +1,59 @@
 /**
  * Vercel Serverless Entry Point
- * 
+ *
  * Vercel is serverless — it does NOT support app.listen().
  * We connect to MongoDB once (cached across warm invocations)
- * and export the Express app as the default export.
+ * and export a handler that ensures DB is ready before each request.
  */
+import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import app from './app';
 import config from './config/db';
 
 let isConnected = false;
+let connectionPromise: Promise<void> | null = null;
 
-async function connectDB() {
-  if (isConnected) return;
+function connectDB(): Promise<void> {
+  if (isConnected) return Promise.resolve();
+  if (connectionPromise) return connectionPromise;
+
   if (!config.database_url) {
-    throw new Error('MONGO_CONNECTION_STRING is not set in environment variables');
+    return Promise.reject(
+      new Error('MONGO_CONNECTION_STRING env var is not set on Vercel. Go to Vercel Dashboard → Settings → Environment Variables and add it.')
+    );
   }
-  await mongoose.connect(config.database_url);
-  isConnected = true;
+
+  connectionPromise = mongoose
+    .connect(config.database_url, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    })
+    .then(() => {
+      isConnected = true;
+      console.log('MongoDB connected');
+    })
+    .catch((err) => {
+      connectionPromise = null;
+      throw err;
+    });
+
+  return connectionPromise;
 }
 
-// Connect on cold start (Vercel will await this before handling requests)
-connectDB().catch(console.error);
+// Wrap the Express app to ensure DB is connected before every request
+const handler = async (req: Request, res: Response) => {
+  try {
+    await connectDB();
+  } catch (err: any) {
+    console.error('DB connection failed:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed. Check Vercel environment variables.',
+      error: err.message,
+    });
+    return;
+  }
+  app(req, res);
+};
 
-// Export the Express app — Vercel uses this as the serverless handler
-export default app;
+export default handler;
