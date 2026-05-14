@@ -48,7 +48,7 @@ const corsOptions = {
     optionsSuccessStatus: 200,
 };
 // Handle preflight for all routes FIRST, before any other middleware
-app.options("*", (0, cors_1.default)(corsOptions));
+app.options("/{*path}", (0, cors_1.default)(corsOptions));
 app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 // API Routes
